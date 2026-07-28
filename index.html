@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingdom Defense - Medieval Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0a07;
+            --panel-bg: #1e130c;
+            --wood-border: #4a2c11;
+            --wood-light: #7a4b21;
+            --accent-gold: #f5b041;
+            --accent-red: #e74c3c;
+            --accent-green: #2ecc71;
+            --accent-blue: #3498db;
+            --accent-orange: #e67e22;
+            --text-main: #f4e8c1;
+            --text-muted: #a88b68;
+            --font-pixel: 'Press Start 2P', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(#1e130c 2px, transparent 2px),
+                radial-gradient(#1e130c 2px, #0f0a07 2px);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+            color: var(--text-main);
+            font-family: var(--font-pixel);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .game-wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: var(--panel-bg);
+            border: 4px solid var(--wood-light);
+            box-shadow:
+                0 0 0 4px #000,
+                8px 8px 0px #000;
+        }
+
+        .canvas-container {
+            position: relative;
+            border: 4px solid #000;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+            width: 720px;
+            height: 480px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        canvas.smooth-texture {
+            image-rendering: auto !important;
+        }
+
+        .sidebar {
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .xp-container {
+            background: #120b06;
+            padding: 10px;
+            border: 3px solid var(--wood-border);
+            box-shadow: inset 2px 2px 0 #000;
+        }
+
+        .xp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .mode-badge {
+            padding: 3px 6px;
+            font-size: 7px;
+            background: var(--accent-blue);
+            color: #fff;
+            border: 2px solid #000;
+            text-transform: uppercase;
+        }
+
+        .xp-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #000;
+            padding: 2px;
+            border: 2px solid var(--wood-light);
+        }
+
+        .xp-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-gold);
+            transition: width 0.2s steps(10);
+        }
+
+        .top-bar-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .stat-card {
+            background: #120b06;
+            padding: 8px;
+            border: 2px solid var(--wood-border);
+            box-shadow: inset 2px 2px 0 #000;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-card.gold-card {
+            color: var(--accent-gold);
+        }
+
+        .stat-card.lives-card {
+            color: var(--accent-red);
+        }
+
+        .stat-card.wave-card {
+            color: var(--accent-blue);
+        }
+
+        .stat-card.highscore-card {
+            color: var(--accent-green);
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 3px;
+            background: var(--wood-border);
+        }
+
+        .turret-shop {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .prop-shop {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .prop-shop::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .prop-shop::-webkit-scrollbar-thumb {
+            background: var(--wood-light);
+            border: 1px solid #000;
+        }
+
+        .texture-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .texture-btn {
+            background: #2a1a10;
+            border: 2px solid var(--wood-light);
+            padding: 6px 4px;
+            color: var(--text-main);
+            cursor: pointer;
+            font-family: var(--font-pixel);
+            font-size: 7px;
+            text-align: center;
+        }
+
+        .texture-btn.active {
+            border-color: var(--accent-gold);
+            background: #4a2c11;
+        }
+
+        .turret-btn,
+        .prop-btn {
+            background: #2a1a10;
+            border: 3px solid var(--wood-light);
+            box-shadow: 0 4px 0 #000;
+            padding: 8px 6px;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-pixel);
+        }
+
+        .prop-btn {
+            padding: 6px 3px;
+            font-size: 7px;
+        }
+
+        .turret-btn:active:not(:disabled),
+        .prop-btn:active,
+        .texture-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #000;
+        }
+
+        .turret-btn.active,
+        .prop-btn.active {
+            border-color: var(--accent-gold);
+            background: #4a2c11;
+        }
+
+        .turret-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .turret-icon {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #000;
+        }
+
+        .turret-name {
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .turret-cost {
+            font-size: 9px;
+            color: var(--accent-gold);
+        }
+
+        .info-panel {
+            background: #120b06;
+            padding: 10px;
+            border: 2px solid var(--wood-border);
+            box-shadow: inset 2px 2px 0 #000;
+            font-size: 8px;
+            color: var(--text-muted);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            line-height: 1.6;
+        }
+
+        .placement-limit-badge {
+            font-size: 8px;
+            color: var(--accent-gold);
+            text-align: right;
+        }
+
+        .btn-action {
+            background: var(--accent-green);
+            color: #000;
+            border: 3px solid #1e8449;
+            box-shadow: 0 4px 0 #000;
+            padding: 12px;
+            font-family: var(--font-pixel);
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .btn-action:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #000;
+        }
+
+        .btn-action:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #3a2212;
+            color: var(--text-main);
+            border: 3px solid var(--wood-light);
+            box-shadow: 0 4px 0 #000;
+            padding: 10px;
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-secondary:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #000;
+        }
+
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 10, 7, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            gap: 16px;
+            border: 4px solid var(--wood-light);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            color: var(--accent-gold);
+            text-shadow: 3px 3px 0 #000;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .menu-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 280px;
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 620px;
+            width: 100%;
+            padding: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .selection-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .selection-grid::-webkit-scrollbar-thumb {
+            background: var(--wood-light);
+            border: 1px solid #000;
+        }
+
+        .card {
+            background: #120b06;
+            border: 3px solid var(--wood-light);
+            box-shadow: 4px 4px 0 #000;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            border-color: var(--accent-gold);
+            background: #2a1a10;
+        }
+
+        .card.active-skin {
+            border-color: var(--accent-gold);
+            background: #4a2c11;
+        }
+
+        .card-avatar {
+            width: 100%;
+            height: 50px;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 9px;
+            text-align: center;
+            padding: 4px;
+        }
+
+        .boss-banner {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-red);
+            border: 3px solid #000;
+            color: #fff;
+            padding: 8px 16px;
+            font-size: 10px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 5;
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .boss-banner.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="game-wrapper">
+        <div id="bossBanner" class="boss-banner">⚔ BOSS APPROACHING ⚔</div>
+
+        <!-- MAIN MENU -->
+        <div id="mainMenu" class="overlay-screen">
+            <div class="menu-title">KINGDOM DEFENSE<br><span style="font-size: 10px; color: var(--text-muted);">MEDIEVAL
+                    SIEGE</span></div>
+            <div class="menu-btn-group">
+                <button id="btnCampaignMenu" class="btn-action">CAMPAIGN</button>
+                <button id="btnInfiniteMenu" class="btn-action"
+                    style="background: #8e44ad; border-color: #6c3483;">INFINITE</button>
+                <button id="btnBuilderMenu" class="btn-action" style="background: #e67e22; border-color: #d35400;">MAP
+                    BUILDER</button>
+                <button id="btnSkinsMenu" class="btn-secondary">HERO GUILD</button>
+                <button id="btnSettingsMenu" class="btn-secondary">SETTINGS</button>
+            </div>
+        </div>
+
+        <!-- SETTINGS MENU -->
+        <div id="settingsMenu" class="overlay-screen hidden">
+            <div class="menu-title" style="font-size: 16px;">SETTINGS</div>
+            <div class="menu-btn-group">
+                <button id="btnToggleMusic" class="btn-action">MUSIC: ON</button>
+                <button id="btnToggleFps" class="btn-secondary">SHOW FPS: OFF</button>
+                <button id="btnToggleTexture" class="btn-secondary">TEXTURE: PIXEL</button>
+            </div>
+            <button id="btnCloseSettings" class="btn-secondary" style="width: 140px; margin-top: 10px;">BACK</button>
+        </div>
+
+        <!-- CAMPAIGN MENU -->
+        <div id="campaignMenu" class="overlay-screen hidden">
+            <div class="menu-title" style="font-size: 14px;">SELECT MISSION</div>
+            <div class="selection-grid" id="campaignGrid"></div>
+            <button class="btn-secondary" onclick="showScreen('mainMenu')" style="width: 140px;">BACK</button>
+        </div>
+
+        <!-- INFINITE MENU -->
+        <div id="infiniteMenu" class="overlay-screen hidden">
+            <div class="menu-title" style="font-size: 14px;">ENDLESS MODE</div>
+            <div class="selection-grid" id="infiniteGrid"></div>
+            <button class="btn-secondary" onclick="showScreen('mainMenu')" style="width: 140px;">BACK</button>
+        </div>
+
+        <!-- DIFFICULTY SELECT MENU -->
+        <div id="difficultyMenu" class="overlay-screen hidden">
+            <div class="menu-title" style="font-size: 14px;">CHOOSE DIFFICULTY</div>
+            <div class="menu-btn-group">
+                <button class="btn-action" style="background: #2ecc71; border-color: #1e8449;"
+                    onclick="confirmDifficulty('easy')">
+                    EASY
+                    <span style="font-size: 7px; display:block; margin-top:3px; color:#111;">1.0x HP | 0.8x DMG | 1.0x
+                        SPEED</span>
+                </button>
+                <button class="btn-action" style="background: #3498db; border-color: #2980b9;"
+                    onclick="confirmDifficulty('normal')">
+                    NORMAL
+                    <span style="font-size: 7px; display:block; margin-top:3px; color:#fff;">1.5x HP | 1.2x DMG | 1.1x
+                        SPEED | 15% DODGE</span>
+                </button>
+                <button class="btn-action" style="background: #e67e22; border-color: #d35400;"
+                    onclick="confirmDifficulty('hard')">
+                    HARD
+                    <span style="font-size: 7px; display:block; margin-top:3px; color:#fff;">2.5x HP | 2.0x DMG | 1.25x
+                        SPEED | 40% DODGE | ENRAGED</span>
+                </button>
+                <button class="btn-action" style="background: #e74c3c; border-color: #c0392b;"
+                    onclick="confirmDifficulty('nightmare')">
+                    NIGHTMARE
+                    <span style="font-size: 7px; display:block; margin-top:3px; color:#fff;">5.0x HP | 3.5x DMG | 1.5x
+                        SPEED | 55% DODGE | 100 GOLD</span>
+                </button>
+            </div>
+            <button class="btn-secondary" onclick="cancelDifficultySelect()" style="width: 140px;">BACK</button>
+        </div>
+
+        <!-- SKIN MENU -->
+        <div id="skinMenu" class="overlay-screen hidden">
+            <div class="menu-title" style="font-size: 14px;">HERO SHOP</div>
+            <div style="color: var(--accent-gold); font-size: 9px;">
+                POINTS: <span id="shopPoints">0</span> PT
+            </div>
+            <div class="selection-grid" id="skinGrid"></div>
+            <button class="btn-secondary" onclick="showScreen('mainMenu')" style="width: 140px;">BACK</button>
+        </div>
+
+        <!-- PAUSE MENU -->
+        <div id="pauseMenu" class="overlay-screen hidden">
+            <div class="menu-title" style="font-size: 16px;">PAUSED</div>
+            <div class="menu-btn-group">
+                <button id="btnResume" class="btn-action">RESUME</button>
+                <button id="btnPauseSettings" class="btn-secondary">SETTINGS</button>
+                <button id="btnRestartPause" class="btn-secondary">RESTART</button>
+                <button id="btnQuitMenu" class="btn-secondary">MAIN MENU</button>
+            </div>
+        </div>
+
+        <!-- GAME OVER / VICTORY OVERLAY -->
+        <div id="gameOverMenu" class="overlay-screen hidden">
+            <div id="endTitle" class="menu-title" style="color: var(--accent-red);">GAME OVER</div>
+            <p id="endSubtitle"
+                style="color: var(--text-muted); font-size: 8px; text-align: center; max-width: 280px; line-height: 1.6;">
+            </p>
+            <div style="color: var(--accent-gold); font-size: 9px;" id="gameOverHighscoreText"></div>
+            <div class="menu-btn-group" style="margin-top: 6px;">
+                <button id="btnRestartGameOver" class="btn-action">RETRY</button>
+                <button id="btnQuitGameOver" class="btn-secondary">MAIN MENU</button>
+            </div>
+        </div>
+
+        <!-- CANVAS & GAMEPLAY UI -->
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="360" height="240"></canvas>
+        </div>
+
+        <div class="sidebar">
+            <!-- GAMEPLAY SIDEBAR -->
+            <div id="gameplaySidebar" style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="xp-container">
+                    <div class="xp-header">
+                        <span>LVL <strong id="playerLevel">1</strong></span>
+                        <div>
+                            <span id="modeBadge" class="mode-badge">CAMPAIGN</span>
+                            <span id="diffBadge" class="mode-badge"
+                                style="background: var(--accent-blue); margin-left: 3px;">NORM</span>
+                        </div>
+                        <span><span id="playerXp">0</span>/<span id="nextLevelXp">100</span></span>
+                    </div>
+                    <div class="xp-bar-bg">
+                        <div id="xpBarFill" class="xp-bar-fill"></div>
+                    </div>
+                </div>
+
+                <div class="top-bar-stats">
+                    <div class="stat-card gold-card">
+                        <span class="stat-label">GOLD</span>
+                        <span id="gold" class="stat-value">150</span>
+                    </div>
+                    <div class="stat-card lives-card">
+                        <span class="stat-label">LIVES</span>
+                        <span id="lives" class="stat-value">20</span>
+                    </div>
+                    <div class="stat-card wave-card">
+                        <span class="stat-label">WAVE</span>
+                        <span id="wave" class="stat-value">1</span>
+                    </div>
+                    <div class="stat-card highscore-card">
+                        <span class="stat-label">BEST</span>
+                        <span id="highScore" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div class="section-title">BUILD TOWERS</div>
+                <div class="placement-limit-badge">
+                    PLACED: <span id="placementsCount">0</span> / <span id="maxPlacements">3</span>
+                </div>
+
+                <div class="turret-shop">
+                    <button class="turret-btn active" data-type="demoman">
+                        <div id="icon-demoman" class="turret-icon"></div>
+                        <span class="turret-name">DEMO</span>
+                        <span class="turret-cost">$150</span>
+                    </button>
+                    <button class="turret-btn" data-type="sniper">
+                        <div id="icon-sniper" class="turret-icon"></div>
+                        <span class="turret-name">SNIPER</span>
+                        <span class="turret-cost">$175</span>
+                    </button>
+                    <button class="turret-btn" data-type="scout">
+                        <div id="icon-scout" class="turret-icon"></div>
+                        <span class="turret-name">SCOUT</span>
+                        <span class="turret-cost">$75</span>
+                    </button>
+                    <button class="turret-btn" data-type="soldier">
+                        <div id="icon-soldier" class="turret-icon"></div>
+                        <span class="turret-name">SOLDIER</span>
+                        <span class="turret-cost">$120</span>
+                    </button>
+                </div>
+
+                <div class="info-panel" id="infoPanel">
+                    Select tower or click map tile to build.
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; gap: 6px;">
+                        <button id="startWaveBtn" class="btn-action" style="flex: 1.2;">START WAVE</button>
+                        <button id="skipWaveBtn" class="btn-action"
+                            style="flex: 1.2; background: #e67e22; border-color: #d35400;">SKIP (+GOLD)</button>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button id="autoSkipBtn" class="btn-secondary"
+                            style="flex: 1; font-size: 8px; padding: 6px; background: #3d2514;">AUTO SKIP: OFF</button>
+                        <button id="speedBtn" class="btn-secondary"
+                            style="flex: 1; background: var(--accent-orange); color: #fff; padding: 6px; font-size: 8px;">1x
+                            SPEED</button>
+                    </div>
+                </div>
+                <button id="pauseBtn" class="btn-secondary">PAUSE</button>
+            </div>
+
+            <!-- MAP BUILDER SIDEBAR -->
+            <div id="builderSidebar" class="hidden" style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="section-title">MAP BUILDER</div>
+
+                <div
+                    style="display: flex; flex-direction: column; gap: 6px; background: #120b06; padding: 6px; border: 2px solid var(--wood-border); box-shadow: inset 2px 2px 0 #000;">
+                    <div style="display: flex; gap: 4px;">
+                        <select id="customMapSelect"
+                            style="flex: 1; font-family: var(--font-pixel); font-size: 7px; padding: 6px; background: #2a1a10; color: var(--text-main); border: 2px solid var(--wood-light); cursor: pointer;"></select>
+                        <button id="newCustomMapBtn" class="btn-secondary"
+                            style="font-size: 7px; padding: 6px 4px; background: var(--accent-green); color: #000; border-color: #1e8449;">+
+                            NEW</button>
+                        <button id="deleteCustomMapBtn" class="btn-secondary"
+                            style="font-size: 7px; padding: 6px 4px; background: var(--accent-red); color: #fff; border-color: #900;">DEL</button>
+                    </div>
+                    <div>
+                        <input id="customMapNameInput" type="text" placeholder="Map Name..." maxlength="18"
+                            style="width: 100%; font-family: var(--font-pixel); font-size: 8px; padding: 6px; background: #2a1a10; color: var(--text-main); border: 2px solid var(--wood-light); outline: none;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 6px;">
+                    <button id="toolPathBtn" class="btn-secondary active"
+                        style="flex: 1; font-size: 8px; padding: 8px;">+ PATH</button>
+                    <button id="toolPropBtn" class="btn-secondary" style="flex: 1; font-size: 8px; padding: 8px;">+
+                        PROP</button>
+                    <button id="toolEraseBtn" class="btn-secondary"
+                        style="flex: 1; font-size: 8px; padding: 8px; background: var(--accent-red);">ERASE</button>
+                </div>
+
+                <div class="section-title">TERRAIN TEXTURE</div>
+                <div class="texture-grid">
+                    <button class="texture-btn active" data-texture="grass">GRASS</button>
+                    <button class="texture-btn" data-texture="ice">ICE</button>
+                    <button class="texture-btn" data-texture="wood">WOOD</button>
+                    <button class="texture-btn" data-texture="stone">STONE</button>
+                    <button class="texture-btn" data-texture="sand">SAND</button>
+                    <button class="texture-btn" data-texture="dungeon">DUNGEON</button>
+                </div>
+
+                <div class="section-title">SELECT PROP</div>
+                <div id="propSelectorContainer" class="prop-shop">
+                    <button class="prop-btn active" data-prop="tree"><span class="turret-name">TREE</span></button>
+                    <button class="prop-btn" data-prop="house"><span class="turret-name">HOUSE</span></button>
+                    <button class="prop-btn" data-prop="castle_wall"><span class="turret-name">WALL</span></button>
+                    <button class="prop-btn" data-prop="cliff"><span class="turret-name">CLIFF</span></button>
+                    <button class="prop-btn" data-prop="rock"><span class="turret-name">ROCK</span></button>
+                    <button class="prop-btn" data-prop="hay"><span class="turret-name">HAY</span></button>
+                    <button class="prop-btn" data-prop="chest"><span class="turret-name">CHEST</span></button>
+                    <button class="prop-btn" data-prop="statue"><span class="turret-name">STATUE</span></button>
+                    <button class="prop-btn" data-prop="crystal"><span class="turret-name">CRYSTAL</span></button>
+                    <button class="prop-btn" data-prop="barrel"><span class="turret-name">BARREL</span></button>
+                    <button class="prop-btn" data-prop="torch"><span class="turret-name">TORCH</span></button>
+                    <button class="prop-btn" data-prop="skull_altar"><span class="turret-name">ALTAR</span></button>
+                    <button class="prop-btn" data-prop="cannon"><span class="turret-name">CANNON</span></button>
+                    <button class="prop-btn" data-prop="banner"><span class="turret-name">BANNER</span></button>
+                </div>
+
+                <div class="info-panel" id="builderInfoPanel" style="min-height: 40px;">
+                    Click tile to place START point (S).
+                </div>
+
+                <div style="display: flex; gap: 6px;">
+                    <button id="undoWaypointBtn" class="btn-secondary" style="flex: 1; font-size: 8px;">UNDO
+                        NODE</button>
+                    <button id="clearBuilderBtn" class="btn-secondary"
+                        style="flex: 1; font-size: 8px; background: var(--accent-red);">RESET MAP</button>
+                </div>
+
+                <button id="saveCustomMapBtn" class="btn-action"
+                    style="background: var(--accent-gold); color: #000; border-color: #d35400;">SAVE MAP</button>
+
+                <div style="display: flex; gap: 6px;">
+                    <button id="playCustomCampaignBtn" class="btn-action"
+                        style="flex: 1; font-size: 8px; padding: 10px 2px;">CAMPAIGN</button>
+                    <button id="playCustomInfiniteBtn" class="btn-action"
+                        style="flex: 1; font-size: 8px; padding: 10px 2px; background: #8e44ad; border-color: #6c3483;">INFINITE</button>
+                </div>
+
+                <button id="exitBuilderBtn" class="btn-secondary">EXIT TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        const GRID_SIZE = 20;
+
+        let playerPoints = 150;
+        let playerLevel = 1;
+        let playerXp = 0;
+        let nextLevelXp = 100;
+
+        let currentGameMode = 'campaign';
+        let currentDifficulty = 'normal';
+        let pendingMatchConfig = null;
+        let currentCampaignLevel = 1;
+        let maxCampaignWaves = 10;
+        let gameSpeed = 1;
+        let autoSkip = false;
+
+        // Settings State
+        let isMuted = false;
+        let showFps = false;
+        let textureStyle = 'pixel';
+        let previousScreen = 'mainMenu';
+
+        // FPS Counter State
+        let lastFpsTime = performance.now();
+        let frameCounter = 0;
+        let currentFps = 60;
+
+        // Web Audio Synthesizer Music System
+        let audioCtx = null;
+        let musicInterval = null;
+        let currentNoteIndex = 0;
+        let currentMapTrack = 'bridge';
+
+        const MUSIC_SCALES = {
+            bridge: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
+            village: [293.66, 329.63, 349.23, 392.00, 440.00, 523.25, 587.33, 659.25],
+            mountain: [220.00, 233.08, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
+            ice: [329.63, 392.00, 440.00, 493.88, 523.25, 659.25, 783.99, 880.00],
+            dungeon: [196.00, 207.65, 233.08, 261.63, 277.18, 311.13, 349.23, 392.00],
+            sand: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 415.30, 440.00],
+            default: [261.63, 311.13, 349.23, 392.00, 466.16, 523.25, 622.25, 698.46]
+        };
+
+        const MUSIC_MELODIES = {
+            bridge: [0, 2, 4, 2, 4, 5, 7, 4, 2, 4, 5, 4, 2, 0, 2, 0],
+            village: [0, 3, 2, 4, 3, 5, 4, 2, 0, 2, 4, 5, 4, 2, 3, 0],
+            mountain: [0, 1, 3, 2, 0, 1, 4, 3, 2, 1, 0, 2, 1, 0, 1, 0],
+            ice: [7, 5, 4, 2, 5, 4, 2, 0, 4, 2, 0, 2, 4, 5, 7, 5],
+            dungeon: [0, 1, 2, 1, 3, 2, 1, 0, 2, 1, 0, 1, 4, 3, 2, 1],
+            sand: [0, 2, 3, 6, 3, 2, 0, 2, 3, 6, 7, 6, 3, 2, 0, 2],
+            default: [0, 2, 3, 5, 3, 2, 0, 3, 2, 0, 5, 3, 2, 0, 2, 0]
+        };
+
+        const MUSIC_BASS = {
+            bridge: [0, 0, 3, 3, 4, 4, 0, 0],
+            village: [0, 0, 2, 2, 3, 3, 0, 0],
+            mountain: [0, 0, 1, 1, 2, 2, 0, 0],
+            ice: [0, 0, 4, 4, 2, 2, 0, 0],
+            dungeon: [0, 0, 1, 1, 3, 3, 0, 0],
+            sand: [0, 0, 2, 2, 3, 3, 0, 0],
+            default: [0, 0, 2, 2, 3, 3, 0, 0]
+        };
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSynthNote(freq, duration, type = 'square', gainVal = 0.03) {
+            if (isMuted || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) { }
+        }
+
+        function startMusic(mapKey) {
+            currentMapTrack = mapKey;
+            if (musicInterval) clearInterval(musicInterval);
+            currentNoteIndex = 0;
+
+            initAudio();
+
+            musicInterval = setInterval(() => {
+                if (isMuted || !audioCtx) return;
+
+                let key = MUSIC_SCALES[currentMapTrack] ? currentMapTrack : 'default';
+                if (currentMapTrack.startsWith('custom_')) {
+                    const customMapObj = MAPS[currentMapTrack];
+                    if (customMapObj && MUSIC_SCALES[customMapObj.texture]) {
+                        key = customMapObj.texture;
+                    } else {
+                        key = 'default';
+                    }
+                }
+
+                const scale = MUSIC_SCALES[key] || MUSIC_SCALES.default;
+                const melody = MUSIC_MELODIES[key] || MUSIC_MELODIES.default;
+                const bass = MUSIC_BASS[key] || MUSIC_BASS.default;
+
+                const melNoteIndex = melody[currentNoteIndex % melody.length];
+                const bassNoteIndex = bass[Math.floor(currentNoteIndex / 2) % bass.length];
+
+                if (melNoteIndex !== undefined) {
+                    playSynthNote(scale[melNoteIndex], 0.18, 'square', 0.03);
+                }
+
+                if (currentNoteIndex % 2 === 0 && bassNoteIndex !== undefined) {
+                    playSynthNote(scale[bassNoteIndex] / 2, 0.3, 'triangle', 0.05);
+                }
+
+                currentNoteIndex++;
+            }, 200);
+        }
+
+        // Builder State
+        let builderTool = 'path';
+        let selectedPropType = 'tree';
+
+        // Multi Custom Maps Storage
+        let customMaps = [];
+        let currentCustomMapId = null;
+
+        // DIFFICULTY SETTINGS & HARDENED NIGHTMARE MODE
+        const DIFFICULTY_SETTINGS = {
+            easy: { name: 'EASY', hpMult: 1.0, dmgMult: 0.8, speedMult: 1.0, dodgeProb: 0.0, goldMult: 1.25, upgradeDmgBonus: 1.0, initialGold: 200, badgeColor: '#2ecc71', enraged: false, deathFx: false, statusFx: false },
+            normal: { name: 'NORMAL', hpMult: 1.5, dmgMult: 1.2, speedMult: 1.1, dodgeProb: 0.15, goldMult: 1.0, upgradeDmgBonus: 1.15, initialGold: 150, badgeColor: '#3498db', enraged: false, deathFx: false, statusFx: false },
+            hard: { name: 'HARD', hpMult: 2.5, dmgMult: 2.0, speedMult: 1.25, dodgeProb: 0.40, goldMult: 1.1, upgradeDmgBonus: 1.35, initialGold: 140, badgeColor: '#e67e22', enraged: true, deathFx: true, statusFx: false },
+            nightmare: { name: 'NIGHTMARE', hpMult: 5.0, dmgMult: 3.5, speedMult: 1.5, dodgeProb: 0.55, goldMult: 0.75, upgradeDmgBonus: 1.1, initialGold: 100, badgeColor: '#e74c3c', enraged: true, deathFx: true, statusFx: true }
+        };
+
+        let gold = 150;
+        let lives = 20;
+        let wave = 1;
+        let waveInProgress = false;
+        let isSpawning = false;
+        let isPaused = false;
+        let isGameOver = false;
+        let selectedTurretType = 'demoman';
+        let selectedPlacedTurret = null;
+        let movingTurret = null;
+        let currentMapKey = 'bridge';
+
+        let spawnQueue = [];
+        let spawnTimer = 0;
+        let spawnIntervalFrames = 30;
+        let currentWaveHpMult = 1;
+        let currentWaveDmgMult = 1;
+
+        const MAX_TURRETS_PER_WAVE = 3;
+        let turretsPlacedThisWave = 0;
+
+        let highScores = JSON.parse(localStorage.getItem('nd_highscores_v6')) || {
+            bridge: 0, village: 0, mountain: 0, campaign1: 0, campaign2: 0, campaign3: 0
+        };
+
+        const SKINS = {
+            ninja: { name: 'Forest', cost: 0, unlocked: true, gradient: '#1b3b22', colors: { demoman: '#e67e22', sniper: '#9b59b6', scout: '#2ed573', soldier: '#1e90ff' }, crest: '#2980b9' },
+            shadow: { name: 'Shadow', cost: 100, unlocked: false, gradient: '#181528', colors: { demoman: '#d35400', sniper: '#a855f7', scout: '#00d2d3', soldier: '#ec4899' }, crest: '#8e44ad' },
+            vixen: { name: 'Royal', cost: 200, unlocked: false, gradient: '#422a08', colors: { demoman: '#f39c12', sniper: '#f5b041', scout: '#2ecc71', soldier: '#3498db' }, crest: '#f1c40f' },
+            mech: { name: 'Dwarf', cost: 300, unlocked: false, gradient: '#2b1d0c', colors: { demoman: '#e74c3c', sniper: '#7f8c8d', scout: '#f1c40f', soldier: '#95a5a6' }, crest: '#e74c3c' }
+        };
+        let activeSkinKey = 'ninja';
+
+        // DIRECT / SHORTENED PATH DEFINITIONS FOR NIGHTMARE MODE
+        const MAP_PATHS = {
+            bridge: {
+                easy: [{ x: -1, y: 1 }, { x: 6, y: 1 }, { x: 6, y: 8 }, { x: 14, y: 8 }, { x: 14, y: 4 }, { x: 18, y: 4 }],
+                normal: [{ x: -1, y: 3 }, { x: 14, y: 3 }, { x: 14, y: 8 }, { x: 18, y: 8 }],
+                hard: [{ x: -1, y: 6 }, { x: 8, y: 6 }, { x: 8, y: 1 }, { x: 18, y: 1 }],
+                nightmare: [{ x: -1, y: 5 }, { x: 18, y: 5 }]
+            },
+            village: {
+                easy: [{ x: -1, y: 1 }, { x: 8, y: 1 }, { x: 8, y: 6 }, { x: 3, y: 6 }, { x: 3, y: 10 }, { x: 18, y: 10 }],
+                normal: [{ x: -1, y: 2 }, { x: 15, y: 2 }, { x: 15, y: 9 }, { x: 18, y: 9 }],
+                hard: [{ x: -1, y: 5 }, { x: 12, y: 5 }, { x: 12, y: 1 }, { x: 18, y: 1 }],
+                nightmare: [{ x: -1, y: 5 }, { x: 18, y: 5 }]
+            },
+            mountain: {
+                easy: [{ x: 1, y: -1 }, { x: 1, y: 5 }, { x: 9, y: 5 }, { x: 9, y: 10 }, { x: 16, y: 10 }, { x: 16, y: 12 }],
+                normal: [{ x: 2, y: -1 }, { x: 2, y: 9 }, { x: 15, y: 9 }, { x: 15, y: 12 }],
+                hard: [{ x: 8, y: -1 }, { x: 8, y: 4 }, { x: 14, y: 4 }, { x: 14, y: 12 }],
+                nightmare: [{ x: 9, y: -1 }, { x: 9, y: 12 }]
+            }
+        };
+
+        function getWaypoints(mapKey, diffKey) {
+            if (MAP_PATHS[mapKey] && MAP_PATHS[mapKey][diffKey]) {
+                return MAP_PATHS[mapKey][diffKey];
+            }
+            const mapObj = MAPS[mapKey];
+            if (mapObj && mapObj.waypoints && mapObj.waypoints.length > 0) {
+                const base = mapObj.waypoints;
+                if (diffKey === 'easy') return base;
+                if (diffKey === 'normal') return base.map(p => ({ x: Math.min(17, Math.max(0, p.x)), y: Math.min(11, Math.max(0, p.y + 1)) }));
+                if (diffKey === 'hard') return base.map(p => ({ x: Math.min(17, Math.max(0, p.x + 1)), y: Math.min(11, Math.max(0, p.y)) }));
+                if (diffKey === 'nightmare') return base.length >= 2 ? [base[0], base[base.length - 1]] : base;
+            }
+            return MAP_PATHS.bridge.normal;
+        }
+
+        function pRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
+        }
+
+        function drawPixelTower(ctx, x, y, stageIndex, crestColor = '#2980b9') {
+            ctx.save();
+            ctx.translate(Math.floor(x), Math.floor(y));
+
+            pRect(-8, 4, 16, 5, '#e5a93c');
+            pRect(-6, 5, 12, 3, '#c8872b');
+
+            if (stageIndex === 0) {
+                pRect(-5, 2, 3, 3, '#7f8c8d');
+                pRect(3, 4, 2, 2, '#7f8c8d');
+                pRect(-6, -1, 5, 2, '#8c5a32');
+                pRect(0, 1, 5, 2, '#8c5a32');
+                pRect(-2, -5, 4, 4, '#eef2f5');
+                pRect(-1, -4, 2, 1, '#2c3e50');
+            } else if (stageIndex === 1) {
+                pRect(-6, -1, 12, 5, '#8c5a32');
+                pRect(-5, -8, 10, 7, '#2980b9');
+                pRect(-4, -7, 8, 7, '#eef2f5');
+                pRect(-2, -3, 4, 5, '#1c2833');
+            } else if (stageIndex === 2) {
+                pRect(-7, -2, 14, 6, '#5c3a21');
+                pRect(-6, -9, 12, 7, '#2980b9');
+                pRect(-4, -7, 8, 7, '#eef2f5');
+                pRect(-2, -3, 4, 5, '#1c2833');
+            } else if (stageIndex === 3) {
+                pRect(-7, -7, 14, 11, '#8c5a32');
+                pRect(-7, -7, 14, 1, '#5c3a21');
+                pRect(-3, -4, 6, 4, '#2980b9');
+                pRect(-2, 0, 4, 4, '#1c2833');
+            } else if (stageIndex === 4) {
+                pRect(-7, -2, 14, 7, '#7f8c8d');
+                pRect(-2, 1, 4, 4, '#4a2c11');
+                pRect(-6, -8, 12, 6, '#8c5a32');
+                pRect(-3, -6, 6, 3, '#2980b9');
+            } else if (stageIndex === 5) {
+                pRect(-7, -7, 14, 11, '#7f8c8d');
+                pRect(-2, -1, 4, 5, '#4a2c11');
+                pRect(-7, -9, 14, 2, '#8c5a32');
+                pRect(-6, -14, 4, 5, crestColor);
+            } else if (stageIndex === 6) {
+                pRect(-7, -8, 14, 12, '#7f8c8d');
+                pRect(-2, -1, 4, 5, '#3d2514');
+                pRect(-8, -13, 16, 5, '#2d3748');
+                pRect(-1, -15, 2, 2, crestColor);
+            } else {
+                pRect(-8, -10, 16, 14, '#4a5568');
+                pRect(-3, -1, 6, 5, '#1a202c');
+                pRect(-9, -15, 18, 5, '#1a202c');
+                pRect(-2, -18, 4, 3, crestColor);
+                pRect(-2, -18, 4, 1, '#f5b041');
+            }
+
+            ctx.restore();
+        }
+
+        const MAPS = {
+            bridge: {
+                name: "Bridge Chokepoint", color: "#3498db", desc: "Short direct choke across river bridge",
+                texture: "grass",
+                waypoints: MAP_PATHS.bridge.normal,
+                props: [
+                    { x: 0, y: 1, type: 'castle_wall' }, { x: 17, y: 6, type: 'castle_wall' },
+                    { x: 5, y: 1, type: 'tree' }, { x: 12, y: 10, type: 'tree' }
+                ],
+                drawBg() {
+                    renderTerrainTexture(this.texture);
+                    pRect(140, 0, 60, canvas.height, '#2980b9');
+                    pRect(140, 0, 4, canvas.height, '#1b4f72');
+                    pRect(196, 0, 4, canvas.height, '#1b4f72');
+
+                    for (let y = 10; y < canvas.height; y += 24) {
+                        pRect(150, y, 12, 2, '#5adeff');
+                        pRect(175, y + 10, 15, 2, '#5adeff');
+                    }
+                }, pathColor: '#95a5a6', pathBorder: '#34495e'
+            },
+            village: {
+                name: "Oakridge Village", color: "#2ecc71", desc: "Shorter winding path past village homes",
+                texture: "grass",
+                waypoints: MAP_PATHS.village.normal,
+                props: [
+                    { x: 4, y: 4, type: 'house' }, { x: 10, y: 4, type: 'house' },
+                    { x: 4, y: 7, type: 'house' }, { x: 10, y: 7, type: 'house' },
+                    { x: 2, y: 10, type: 'tree' }, { x: 16, y: 11, type: 'tree' }
+                ],
+                drawBg() {
+                    renderTerrainTexture(this.texture);
+                }, pathColor: '#d2b48c', pathBorder: '#8b5a2b'
+            },
+            mountain: {
+                name: "Mountain Pass", color: "#e67e22", desc: "Short canyon run through the pass",
+                texture: "sand",
+                waypoints: MAP_PATHS.mountain.normal,
+                props: [
+                    { x: 5, y: 3, type: 'cliff' }, { x: 9, y: 4, type: 'cliff' },
+                    { x: 12, y: 3, type: 'cliff' }, { x: 6, y: 11, type: 'rock' }
+                ],
+                drawBg() {
+                    renderTerrainTexture(this.texture);
+                }, pathColor: '#d5b895', pathBorder: '#5c4033'
+            }
+        };
+
+        function saveAllCustomMaps() {
+            localStorage.setItem('nd_custom_maps_v2', JSON.stringify(customMaps));
+            registerCustomMapsToMAPS();
+        }
+
+        function createDefaultCustomMap() {
+            return {
+                id: 'map_' + Date.now(),
+                name: 'Custom Map 1',
+                waypoints: [],
+                props: [],
+                texture: 'grass'
+            };
+        }
+
+        function registerCustomMapsToMAPS() {
+            Object.keys(MAPS).forEach(k => {
+                if (k.startsWith('custom_')) delete MAPS[k];
+            });
+
+            customMaps.forEach(m => {
+                const key = 'custom_' + m.id;
+                MAPS[key] = {
+                    id: m.id,
+                    name: m.name || 'Custom Map',
+                    color: '#e67e22',
+                    desc: 'User created custom arena',
+                    texture: m.texture || 'grass',
+                    waypoints: m.waypoints || [],
+                    props: m.props || [],
+                    drawBg() {
+                        renderTerrainTexture(this.texture);
+                    },
+                    get pathColor() { return getPathColors(this.texture).color; },
+                    get pathBorder() { return getPathColors(this.texture).border; }
+                };
+            });
+        }
+
+        function loadCustomMaps() {
+            const saved = localStorage.getItem('nd_custom_maps_v2');
+            if (saved) {
+                try { customMaps = JSON.parse(saved); } catch (e) { customMaps = []; }
+            }
+
+            if (!customMaps || customMaps.length === 0) {
+                customMaps = [createDefaultCustomMap()];
+            }
+
+            currentCustomMapId = customMaps[0].id;
+            saveAllCustomMaps();
+        }
+
+        function updateCustomMapSelectDropdown() {
+            const select = document.getElementById('customMapSelect');
+            select.innerHTML = '';
+            customMaps.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name || 'Untitled Map';
+                if (m.id === currentCustomMapId) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function selectCustomMapForEditing(id) {
+            let mapObj = customMaps.find(m => m.id === id);
+            if (!mapObj) {
+                mapObj = customMaps[0] || createDefaultCustomMap();
+            }
+
+            currentCustomMapId = mapObj.id;
+            currentMapKey = 'custom_' + mapObj.id;
+
+            registerCustomMapsToMAPS();
+
+            waypoints = MAPS[currentMapKey].waypoints;
+            updatePixelPath();
+
+            document.getElementById('customMapNameInput').value = mapObj.name || '';
+            updateCustomMapSelectDropdown();
+
+            document.querySelectorAll('.texture-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.texture === (mapObj.texture || 'grass'));
+            });
+        }
+
+        function saveCurrentCustomMap() {
+            let mapObj = customMaps.find(m => m.id === currentCustomMapId);
+            if (mapObj && MAPS[currentMapKey]) {
+                const nameInput = document.getElementById('customMapNameInput').value.trim();
+                mapObj.name = nameInput || 'Untitled Map';
+                mapObj.waypoints = waypoints;
+                mapObj.props = MAPS[currentMapKey].props;
+                mapObj.texture = MAPS[currentMapKey].texture;
+                MAPS[currentMapKey].name = mapObj.name;
+
+                saveAllCustomMaps();
+                updateCustomMapSelectDropdown();
+            }
+        }
+
+        loadCustomMaps();
+
+        function getPathColors(textureName) {
+            switch (textureName) {
+                case 'ice': return { color: '#e0f7fa', border: '#0097a7' };
+                case 'wood': return { color: '#8c5a32', border: '#3d2514' };
+                case 'stone': return { color: '#95a5a6', border: '#2c3e50' };
+                case 'sand': return { color: '#f5d6a7', border: '#a07855' };
+                case 'dungeon': return { color: '#4a5568', border: '#1a202c' };
+                case 'grass':
+                default: return { color: '#d2b48c', border: '#8b5a2b' };
+            }
+        }
+
+        function renderTerrainTexture(textureName) {
+            if (textureName === 'grass') {
+                pRect(0, 0, canvas.width, canvas.height, '#4d7527');
+                for (let i = 0; i < canvas.width; i += 16) {
+                    for (let j = 0; j < canvas.height; j += 16) {
+                        if ((i + j) % 7 === 0) pRect(i, j, 3, 3, '#3b5c1e');
+                        if ((i * 3 + j) % 11 === 0) pRect(i + 4, j + 2, 2, 2, '#649633');
+                    }
+                }
+            } else if (textureName === 'ice') {
+                pRect(0, 0, canvas.width, canvas.height, '#a5f2f3');
+                for (let i = 0; i < canvas.width; i += 20) {
+                    for (let j = 0; j < canvas.height; j += 20) {
+                        if ((i + j) % 6 === 0) pRect(i, j, 8, 2, '#5adeff');
+                        if ((i * 2 + j) % 8 === 0) pRect(i + 2, j + 5, 2, 6, '#ffffff');
+                    }
+                }
+            } else if (textureName === 'wood') {
+                pRect(0, 0, canvas.width, canvas.height, '#5c3a21');
+                for (let y = 0; y < canvas.height; y += 16) {
+                    pRect(0, y, canvas.width, 2, '#3d2514');
+                    for (let x = (y % 32 === 0 ? 0 : 24); x < canvas.width; x += 48) {
+                        pRect(x, y, 2, 16, '#3d2514');
+                        pRect(x + 4, y + 4, 1, 1, '#1c1208');
+                    }
+                }
+            } else if (textureName === 'stone') {
+                pRect(0, 0, canvas.width, canvas.height, '#5d6d7e');
+                for (let y = 0; y < canvas.height; y += 12) {
+                    pRect(0, y, canvas.width, 1, '#34495e');
+                    for (let x = (y % 24 === 0 ? 0 : 10); x < canvas.width; x += 20) {
+                        pRect(x, y, 1, 12, '#34495e');
+                        if ((x + y) % 5 === 0) pRect(x + 3, y + 3, 2, 2, '#7f8c8d');
+                    }
+                }
+            } else if (textureName === 'sand') {
+                pRect(0, 0, canvas.width, canvas.height, '#f39c12');
+                for (let i = 0; i < canvas.width; i += 16) {
+                    for (let j = 0; j < canvas.height; j += 16) {
+                        if ((i + j) % 5 === 0) pRect(i, j, 4, 3, '#d35400');
+                        if ((i * 3 + j) % 9 === 0) pRect(i + 2, j + 1, 3, 2, '#f1c40f');
+                    }
+                }
+            } else if (textureName === 'dungeon') {
+                pRect(0, 0, canvas.width, canvas.height, '#181124');
+                for (let y = 0; y < canvas.height; y += 16) {
+                    pRect(0, y, canvas.width, 2, '#2c1a45');
+                    for (let x = (y % 32 === 0 ? 0 : 16); x < canvas.width; x += 32) {
+                        pRect(x, y, 2, 16, '#2c1a45');
+                        if ((x + y) % 7 === 0) pRect(x + 5, y + 5, 3, 3, '#3d275c');
+                    }
+                }
+            }
+        }
+
+        let waypoints = getWaypoints('bridge', 'normal');
+        let pixelPath = [];
+
+        function updatePixelPath() {
+            pixelPath = waypoints.map(pt => ({ x: pt.x * GRID_SIZE + GRID_SIZE / 2, y: pt.y * GRID_SIZE + GRID_SIZE / 2 }));
+        }
+        updatePixelPath();
+
+        const TURRET_TYPES = {
+            demoman: {
+                name: 'Demoman', baseCost: 150, type: 'splash', levels: [
+                    { level: 0, dmg: 35, cd: 0.7, range: 4.5, upgradeCost: 120 },
+                    { level: 1, dmg: 85, cd: 0.9, range: 5.0, upgradeCost: 200 },
+                    { level: 2, dmg: 190, cd: 0.6, range: 5.5, upgradeCost: 350 },
+                    { level: 3, dmg: 420, cd: 0.4, range: 6.0, upgradeCost: 0 }
+                ]
+            },
+            sniper: {
+                name: 'Sniper', baseCost: 175, type: 'single', levels: [
+                    { level: 0, dmg: 110, cd: 1.5, range: 9.9, upgradeCost: 140 },
+                    { level: 1, dmg: 260, cd: 1.1, range: 11.88, upgradeCost: 240 },
+                    { level: 2, dmg: 550, cd: 0.8, range: 13.86, upgradeCost: 400 },
+                    { level: 3, dmg: 1250, cd: 0.5, range: 15.84, upgradeCost: 0 }
+                ]
+            },
+            scout: {
+                name: 'Scout', baseCost: 75, type: 'single', levels: [
+                    { level: 0, dmg: 14, cd: 0.35, range: 4.0, upgradeCost: 60 },
+                    { level: 1, dmg: 32, cd: 0.25, range: 4.5, upgradeCost: 110 },
+                    { level: 2, dmg: 75, cd: 0.18, range: 5.0, upgradeCost: 220 },
+                    { level: 3, dmg: 170, cd: 0.10, range: 5.5, upgradeCost: 0 }
+                ]
+            },
+            soldier: {
+                name: 'Soldier', baseCost: 120, type: 'burst', levels: [
+                    { level: 0, dmg: 18, burst: 3, cd: 1, range: 4.5, upgradeCost: 90 },
+                    { level: 1, dmg: 42, burst: 4, cd: 0.4, range: 5.0, upgradeCost: 160 },
+                    { level: 2, dmg: 95, burst: 5, cd: 0.3, range: 5.5, upgradeCost: 280 },
+                    { level: 3, dmg: 210, burst: 6, cd: 0.2, range: 6.5, upgradeCost: 0 }
+                ]
+            }
+        };
+
+        const ENEMY_CLASSES = {
+            knight: { type: 'knight', name: 'Knight', hp: 240, speed: 0.45, dmg: 25, size: 1.0 },
+            crossbow: { type: 'crossbow', name: 'Crossbowman', hp: 140, speed: 0.55, dmg: 35, size: 1.0 },
+            wolf: { type: 'wolf', name: 'Wolf', hp: 100, speed: 0.75, dmg: 20, size: 0.9 },
+            slime: { type: 'slime', name: 'Slime', hp: 90, speed: 0.40, dmg: 15, size: 0.8 },
+            golem: { type: 'golem', name: 'Golem Boss', hp: 5000, speed: 0.22, dmg: 150, size: 1.5, isBoss: true },
+            treant: { type: 'treant', name: 'Treant Boss', hp: 4500, speed: 0.24, dmg: 140, size: 1.5, isBoss: true },
+            larva: { type: 'larva', name: 'Larva Boss', hp: 4200, speed: 0.26, dmg: 130, size: 1.4, isBoss: true },
+            hound: { type: 'hound', name: 'Hound', hp: 160, speed: 0.65, dmg: 22, size: 0.9 },
+            commander: { type: 'commander', name: 'Commander', hp: 3000, speed: 0.24, dmg: 130, size: 1.4, isBoss: true },
+            goblin: { type: 'goblin', name: 'Goblin', hp: 110, speed: 0.60, dmg: 18, size: 0.85 },
+            zombie: { type: 'zombie', name: 'Zombie', hp: 320, speed: 0.32, dmg: 30, size: 1.0 },
+            angler: { type: 'angler', name: 'Angler', hp: 190, speed: 0.55, dmg: 25, size: 1.0 }
+        };
+
+        let turrets = [];
+        let enemies = [];
+        let particles = [];
+        let projectiles = [];
+
+        function isTileOnPath(gx, gy) {
+            if (!waypoints || waypoints.length === 0) return false;
+            if (waypoints.length === 1) {
+                return waypoints[0].x === gx && waypoints[0].y === gy;
+            }
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const p1 = waypoints[i], p2 = waypoints[i + 1];
+                if (gx >= Math.min(p1.x, p2.x) && gx <= Math.max(p1.x, p2.x) &&
+                    gy >= Math.min(p1.y, p2.y) && gy <= Math.max(p1.y, p2.y)) return true;
+            }
+            return false;
+        }
+
+        function getTileRestrictionReason(gx, gy) {
+            if (isTileOnPath(gx, gy)) return "CANNOT BUILD ON PATH";
+
+            const map = MAPS[currentMapKey];
+            if (map && map.props && map.props.some(p => p.x === gx && p.y === gy)) {
+                return "AREA RESTRICTED";
+            }
+
+            return null;
+        }
+
+        function addXp(amount) {
+            playerXp += amount;
+            while (playerXp >= nextLevelXp) {
+                playerXp -= nextLevelXp;
+                playerLevel++;
+                nextLevelXp = Math.floor(nextLevelXp * 1.5);
+                playerPoints += 50;
+            }
+            updateUI();
+        }
+
+        function createFloatingText(x, y, text, color) {
+            particles.push({
+                x: x, y: y - 5, text: text, color: color, life: 30, maxLife: 30,
+                update() { this.y -= 0.3; this.life--; },
+                draw() {
+                    ctx.save();
+                    ctx.fillStyle = this.color;
+                    ctx.font = '7px "Press Start 2P"';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.text, Math.floor(this.x), Math.floor(this.y));
+                    ctx.restore();
+                }
+            });
+        }
+
+        class Particle {
+            constructor(x, y, color, speed, size, life) {
+                this.x = x; this.y = y; this.color = color;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.size = size; this.life = life; this.maxLife = life;
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.life--; }
+            draw() {
+                pRect(this.x, this.y, this.size, this.size, this.color);
+            }
+        }
+
+        function createExplosion(x, y, color, count = 8) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color, 2, Math.random() * 2 + 1, 15));
+            }
+        }
+
+        class Enemy {
+            constructor(classKey, hpMultiplier = 1, dmgMultiplier = 1) {
+                const base = ENEMY_CLASSES[classKey] || ENEMY_CLASSES.knight;
+                const diffConfig = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal;
+
+                this.x = pixelPath[0] ? pixelPath[0].x : 0;
+                this.y = pixelPath[0] ? pixelPath[0].y : 0;
+                this.pathIndex = 1;
+                this.unitType = base.type;
+                this.name = base.name;
+                this.maxHp = Math.floor(base.hp * hpMultiplier);
+                this.hp = this.maxHp;
+
+                this.speed = base.speed * 1.015 * (diffConfig.speedMult || 1.0);
+                this.dmg = Math.floor(base.dmg * dmgMultiplier);
+                this.isBoss = !!base.isBoss;
+                this.animFrame = 0;
+                this.animTimer = 0;
+
+                this.isEnraged = false;
+                this.dodgeProb = diffConfig.dodgeProb || 0;
+                this.tier1Awarded = false;
+                this.tier2Awarded = false;
+            }
+
+            applyDamage(dmg) {
+                if (this.dodgeProb > 0 && Math.random() < this.dodgeProb) {
+                    createFloatingText(this.x, this.y, 'DODGE!', '#3498db');
+                    return;
+                }
+
+                this.hp -= dmg;
+                const diffConfig = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal;
+
+                if (diffConfig.enraged && !this.isEnraged && this.hp > 0 && this.hp <= (this.maxHp * 0.3)) {
+                    this.isEnraged = true;
+                    this.dmg = Math.floor(this.dmg * 1.25);
+                    this.speed *= 1.2;
+                    createFloatingText(this.x, this.y, 'ENRAGED!', '#e74c3c');
+                    createExplosion(this.x, this.y, '#e74c3c', 8);
+                }
+
+                if (!this.tier1Awarded && this.hp <= (this.maxHp * 2 / 3)) {
+                    this.tier1Awarded = true;
+                    const r = Math.round((this.isBoss ? 40 : 10) * diffConfig.goldMult);
+                    gold += r; createFloatingText(this.x, this.y, `+$${r}`, '#f5b041'); updateUI();
+                }
+                if (!this.tier2Awarded && this.hp <= (this.maxHp * 1 / 3)) {
+                    this.tier2Awarded = true;
+                    const r = Math.round((this.isBoss ? 40 : 10) * diffConfig.goldMult);
+                    gold += r; createFloatingText(this.x, this.y, `+$${r}`, '#f5b041'); updateUI();
+                }
+            }
+
+            update() {
+                this.animTimer++;
+                if (this.animTimer % 8 === 0) {
+                    this.animFrame = (this.animFrame + 1) % 4;
+                }
+
+                const target = pixelPath[this.pathIndex];
+                if (!target) return false;
+
+                const dx = target.x - this.x;
+                const dy = target.y - this.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < this.speed) {
+                    this.x = target.x; this.y = target.y;
+                    this.pathIndex++;
+                    if (this.pathIndex >= pixelPath.length) {
+                        let baseLifeLoss = Math.max(1, Math.floor(this.dmg / 10));
+                        createFloatingText(this.x, this.y, `-${baseLifeLoss}`, '#e74c3c');
+                        lives -= baseLifeLoss;
+                        updateUI();
+                        return false;
+                    }
+                } else {
+                    this.x += (dx / dist) * this.speed;
+                    this.y += (dy / dist) * this.speed;
+                }
+                return true;
+            }
+
+            draw() {
+                const x = Math.floor(this.x), y = Math.floor(this.y);
+                const frame = this.animFrame;
+                const legShift = (frame % 2 === 0) ? 1 : -1;
+
+                ctx.save();
+                ctx.translate(x, y);
+
+                if (this.isEnraged) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.35)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                switch (this.unitType) {
+                    case 'knight':
+                        pRect(-3, -8, 6, 4, '#5a6578'); pRect(-1, -6, 4, 1, '#111');
+                        pRect(-4, -4, 8, 3, '#c0392b');
+                        pRect(-3, -1, 6, 5, '#3a4558');
+                        pRect(-3 + legShift, 4, 2, 3, '#2a3548'); pRect(1 - legShift, 4, 2, 3, '#2a3548');
+                        pRect(4, -3, 2, 6, '#cbd5e0'); pRect(3, 0, 4, 1, '#f5b041');
+                        break;
+                    case 'crossbow':
+                        pRect(-3, -8, 6, 3, '#34495e'); pRect(-2, -5, 4, 2, '#f3c193');
+                        pRect(-3, -3, 6, 4, '#c0392b');
+                        pRect(-3 + legShift, 1, 2, 4, '#2c3e50'); pRect(1 - legShift, 1, 2, 4, '#2c3e50');
+                        pRect(-5, -2, 4, 2, '#8d5524'); pRect(-6, -3, 1, 4, '#7f8c8d');
+                        break;
+                    case 'wolf':
+                        ctx.scale(-1, 1);
+                        pRect(-6, -4, 10, 5, '#34495e');
+                        pRect(-7, -7, 4, 4, '#2c3e50');
+                        pRect(-8, -6, 2, 2, '#000');
+                        pRect(3, -6, 2, 3, '#2c3e50');
+                        pRect(-5 + legShift, 1, 2, 4, '#1a252f'); pRect(-1 - legShift, 1, 2, 4, '#1a252f');
+                        pRect(2 + legShift, 1, 2, 4, '#1a252f');
+                        break;
+                    case 'slime':
+                        const squish = (frame % 2 === 0) ? 0 : 1;
+                        pRect(-5 - squish, -3 + squish, 10 + squish * 2, 6 - squish, '#2ecc71');
+                        pRect(-3, -2, 2, 2, '#1e8449'); pRect(1, -2, 2, 2, '#1e8449');
+                        break;
+                    case 'golem':
+                        pRect(-9, -12, 18, 14, '#7f5539');
+                        pRect(-7, -10, 14, 5, '#9c6644');
+                        pRect(-3, -8, 6, 3, '#f5b041');
+                        pRect(-12, -8, 4, 10, '#5c3a21'); pRect(8, -8, 4, 10, '#5c3a21');
+                        pRect(-6 + legShift, 2, 5, 6, '#4a2c11'); pRect(1 - legShift, 2, 5, 6, '#4a2c11');
+                        break;
+                    case 'treant':
+                        pRect(-7, -11, 14, 13, '#3d2514');
+                        pRect(-9, -16, 18, 8, '#27ae60');
+                        pRect(-7, -18, 14, 4, '#2ecc71');
+                        pRect(-4, -9, 3, 2, '#e74c3c'); pRect(1, -9, 3, 2, '#e74c3c');
+                        pRect(-10, -9, 4, 9, '#2a1a10'); pRect(6, -9, 4, 9, '#2a1a10');
+                        pRect(-6 + legShift, 2, 5, 6, '#2a1a10'); pRect(1 - legShift, 2, 5, 6, '#2a1a10');
+                        break;
+                    case 'larva':
+                        pRect(-9, -4, 16, 8, '#95a5a6');
+                        pRect(-7, -7, 12, 3, '#7f8c8d');
+                        pRect(-5, 4, 12, 3, '#7f8c8d');
+                        pRect(-12, -10, 6, 6, '#8e44ad');
+                        pRect(-12, -1, 6, 6, '#8e44ad');
+                        pRect(-15, -6, 6, 6, '#9b59b6');
+                        pRect(-9, -6, 5, 5, '#f1c40f');
+                        break;
+                    default:
+                        pRect(-3, -7, 6, 4, '#27ae60');
+                        pRect(-3, -3, 6, 4, '#8d5524');
+                        pRect(-3 + legShift, 1, 2, 3, '#1e8449'); pRect(1 - legShift, 1, 2, 3, '#1e8449');
+                        break;
+                }
+
+                ctx.restore();
+
+                const barW = this.isBoss ? 18 : 12;
+                pRect(x - barW / 2, y - 13, barW, 2, '#000');
+                pRect(x - barW / 2, y - 13, (Math.max(0, this.hp) / this.maxHp) * barW, 2, this.isBoss ? '#f5b041' : (this.isEnraged ? '#e74c3c' : '#2ecc71'));
+            }
+        }
+
+        class Turret {
+            constructor(gx, gy, typeKey) {
+                this.gx = gx; this.gy = gy;
+                this.x = gx * GRID_SIZE + GRID_SIZE / 2;
+                this.y = gy * GRID_SIZE + GRID_SIZE / 2;
+                this.typeKey = typeKey;
+                this.levelIndex = 0;
+                this.cooldown = 0;
+                this.angle = 0;
+                this.burstRemaining = 0;
+                this.burstTimer = 0;
+                this.totalSpent = TURRET_TYPES[typeKey].baseCost;
+            }
+
+            getStats() {
+                const baseStats = TURRET_TYPES[this.typeKey].levels[this.levelIndex];
+                const diffConfig = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal;
+                const upgradeDmgMultiplier = 1 + (this.levelIndex * (diffConfig.upgradeDmgBonus - 1));
+                return {
+                    ...baseStats,
+                    dmg: Math.round(baseStats.dmg * upgradeDmgMultiplier)
+                };
+            }
+
+            getRangePx() { return this.getStats().range * 12; }
+            getColor() { return SKINS[activeSkinKey].colors[this.typeKey]; }
+
+            moveTo(gx, gy) {
+                this.gx = gx; this.gy = gy;
+                this.x = gx * GRID_SIZE + GRID_SIZE / 2;
+                this.y = gy * GRID_SIZE + GRID_SIZE / 2;
+            }
+
+            upgrade() {
+                if (this.levelIndex < 3) {
+                    const stats = TURRET_TYPES[this.typeKey].levels[this.levelIndex];
+                    if (gold >= stats.upgradeCost) {
+                        gold -= stats.upgradeCost;
+                        this.totalSpent += stats.upgradeCost;
+                        this.levelIndex++;
+                        updateUI();
+                        createExplosion(this.x, this.y, this.getColor(), 10);
+                    }
+                }
+            }
+
+            update() {
+                const stats = this.getStats();
+                const rangePx = this.getRangePx();
+                const isSplash = TURRET_TYPES[this.typeKey].type === 'splash';
+
+                if (this.burstRemaining > 0) {
+                    this.burstTimer--;
+                    if (this.burstTimer <= 0) {
+                        let target = this.findTarget(rangePx);
+                        if (target) {
+                            projectiles.push(new Projectile(this.x, this.y - 6, target, stats, this.getColor(), isSplash));
+                            this.burstRemaining--;
+                            this.burstTimer = 3;
+                        } else { this.burstRemaining = 0; }
+                    }
+                    return;
+                }
+
+                if (this.cooldown > 0) this.cooldown--;
+
+                let target = this.findTarget(rangePx);
+                if (target) {
+                    this.angle = Math.atan2(target.y - this.y, target.x - this.x);
+                    if (this.cooldown <= 0) {
+                        if (TURRET_TYPES[this.typeKey].type === 'burst') {
+                            this.burstRemaining = stats.burst; this.burstTimer = 0;
+                        } else {
+                            projectiles.push(new Projectile(this.x, this.y - 6, target, stats, this.getColor(), isSplash));
+                        }
+                        this.cooldown = Math.round(stats.cd * 30);
+                    }
+                }
+            }
+
+            findTarget(rangePx) {
+                let target = null; let minDist = rangePx;
+                for (const enemy of enemies) {
+                    const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                    if (dist < minDist) { minDist = dist; target = enemy; }
+                }
+                return target;
+            }
+
+            draw() {
+                const stage = this.levelIndex * 2 + 1;
+                const crest = SKINS[activeSkinKey].crest || '#2980b9';
+                drawPixelTower(ctx, this.x, this.y, stage, crest);
+                pRect(this.x - 2, this.y - 8, 4, 4, this.getColor());
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, target, stats, color, isSplash = false) {
+                this.x = x; this.y = y; this.target = target;
+                this.stats = stats; this.color = color; this.isSplash = isSplash; this.speed = 7;
+            }
+
+            update() {
+                const dx = this.target.x - this.x, dy = this.target.y - this.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < this.speed) { this.hit(); return false; }
+                this.x += (dx / dist) * this.speed;
+                this.y += (dy / dist) * this.speed;
+                return true;
+            }
+
+            hit() {
+                if (this.isSplash) {
+                    enemies.forEach(e => {
+                        if (Math.hypot(e.x - this.x, e.y - this.y) <= 35) e.applyDamage(this.stats.dmg);
+                    });
+                    createExplosion(this.x, this.y, '#d35400', 10);
+                } else {
+                    this.target.applyDamage(this.stats.dmg);
+                    createExplosion(this.x, this.y, this.color, 4);
+                }
+            }
+
+            draw() {
+                pRect(this.x - 1, this.y - 1, 3, 3, this.color);
+            }
+        }
+
+        function drawPixelPath() {
+            const map = MAPS[currentMapKey] || MAPS.bridge;
+            const pColor = map.pathColor || getPathColors(map.texture).color;
+            const pBorder = map.pathBorder || getPathColors(map.texture).border;
+
+            for (let gy = 0; gy < 12; gy++) {
+                for (let gx = 0; gx < 18; gx++) {
+                    if (isTileOnPath(gx, gy)) {
+                        pRect(gx * GRID_SIZE, gy * GRID_SIZE, GRID_SIZE, GRID_SIZE, pColor);
+                        ctx.strokeStyle = pBorder;
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(gx * GRID_SIZE + 0.5, gy * GRID_SIZE + 0.5, GRID_SIZE - 1, GRID_SIZE - 1);
+                    }
+                }
+            }
+        }
+
+        function drawBuildableGrid() {
+            ctx.save();
+            for (let gy = 0; gy < canvas.height / GRID_SIZE; gy++) {
+                for (let gx = 0; gx < canvas.width / GRID_SIZE; gx++) {
+                    const isOccupied = turrets.some(t => t.gx === gx && t.gy === gy);
+                    const isRestricted = getTileRestrictionReason(gx, gy);
+
+                    if (!isRestricted && !isOccupied) {
+                        ctx.fillStyle = 'rgba(46, 204, 113, 0.08)';
+                        ctx.fillRect(gx * GRID_SIZE, gy * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(gx * GRID_SIZE + 0.5, gy * GRID_SIZE + 0.5, GRID_SIZE - 1, GRID_SIZE - 1);
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawMapProps() {
+            const map = MAPS[currentMapKey];
+            if (!map || !map.props) return;
+
+            map.props.forEach(p => {
+                const px = p.x * GRID_SIZE + GRID_SIZE / 2;
+                const py = p.y * GRID_SIZE + GRID_SIZE / 2;
+
+                if (p.type === 'house') {
+                    pRect(px - 8, py - 4, 16, 10, '#8d5524');
+                    pRect(px - 9, py - 8, 18, 4, '#c0392b');
+                    pRect(px - 2, py, 4, 6, '#4a2c11');
+                } else if (p.type === 'tree') {
+                    pRect(px - 2, py + 2, 4, 6, '#5c3a21');
+                    pRect(px - 6, py - 6, 12, 8, '#27ae60');
+                    pRect(px - 4, py - 10, 8, 5, '#2ecc71');
+                } else if (p.type === 'castle_wall') {
+                    pRect(px - 8, py - 6, 16, 12, '#5d6d7e');
+                    pRect(px - 8, py - 8, 4, 3, '#34495e'); pRect(px + 4, py - 8, 4, 3, '#34495e');
+                } else if (p.type === 'cliff') {
+                    pRect(px - 9, py - 9, 18, 18, '#5c4033');
+                    pRect(px - 7, py - 7, 14, 14, '#4e342e');
+                } else if (p.type === 'rock') {
+                    pRect(px - 5, py - 2, 10, 6, '#7f8c8d');
+                    pRect(px - 3, py - 4, 6, 2, '#95a5a6');
+                } else if (p.type === 'hay') {
+                    pRect(px - 6, py - 4, 12, 8, '#f1c40f');
+                    pRect(px - 4, py - 6, 8, 4, '#f39c12');
+                } else if (p.type === 'chest') {
+                    pRect(px - 6, py - 2, 12, 8, '#7a4b21');
+                    pRect(px - 6, py - 4, 12, 1, '#3d2514');
+                    pRect(px - 5, py - 2, 2, 8, '#7f8c8d');
+                    pRect(px + 3, py - 2, 2, 8, '#7f8c8d');
+                    pRect(px - 1, py - 1, 2, 3, '#f5b041');
+                } else if (p.type === 'statue') {
+                    pRect(px - 6, py + 2, 12, 5, '#5d6d7e');
+                    pRect(px - 4, py - 8, 8, 10, '#95a5a6');
+                    pRect(px - 2, py - 6, 4, 1, '#2c3e50');
+                    pRect(px + 3, py - 6, 1, 10, '#bdc3c7');
+                } else if (p.type === 'crystal') {
+                    pRect(px - 5, py + 2, 10, 4, '#34495e');
+                    pRect(px - 3, py - 8, 6, 10, '#00d2d3');
+                    pRect(px - 1, py - 10, 2, 12, '#54a0ff');
+                    pRect(px - 5, py - 4, 3, 6, '#48dbfb');
+                    pRect(px - 1, py - 6, 1, 3, '#ffffff');
+                } else if (p.type === 'barrel') {
+                    pRect(px - 5, py - 5, 10, 10, '#8d5524');
+                    pRect(px - 5, py - 3, 10, 1, '#34495e');
+                    pRect(px - 5, py + 2, 10, 1, '#34495e');
+                    pRect(px - 4, py - 5, 8, 2, '#5c3a21');
+                } else if (p.type === 'torch') {
+                    pRect(px - 1, py - 2, 2, 9, '#5c3a21');
+                    pRect(px - 3, py - 4, 6, 3, '#7f8c8d');
+                    pRect(px - 2, py - 8, 4, 4, '#e67e22');
+                    pRect(px - 1, py - 7, 2, 2, '#f1c40f');
+                } else if (p.type === 'skull_altar') {
+                    pRect(px - 7, py - 1, 14, 7, '#2c3e50');
+                    pRect(px - 5, py - 8, 10, 7, '#ecf0f1');
+                    pRect(px - 3, py - 6, 2, 2, '#000000');
+                    pRect(px + 1, py - 6, 2, 2, '#000000');
+                    pRect(px - 2, py - 12, 4, 4, '#00d2d3');
+                } else if (p.type === 'cannon') {
+                    pRect(px - 7, py + 1, 4, 5, '#4a2c11');
+                    pRect(px + 3, py + 1, 4, 5, '#4a2c11');
+                    pRect(px - 5, py - 4, 10, 6, '#34495e');
+                    pRect(px + 4, py - 5, 2, 8, '#1a252f');
+                } else if (p.type === 'banner') {
+                    pRect(px - 5, py - 10, 2, 16, '#7f8c8d');
+                    pRect(px - 3, py - 9, 10, 7, '#e74c3c');
+                    pRect(px, py - 7, 4, 3, '#f1c40f');
+                }
+            });
+        }
+
+        function drawBuilderOverlay() {
+            ctx.save();
+            ctx.strokeStyle = '#f1c40f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            waypoints.forEach((pt, idx) => {
+                const px = pt.x * GRID_SIZE + GRID_SIZE / 2;
+                const py = pt.y * GRID_SIZE + GRID_SIZE / 2;
+                if (idx === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            waypoints.forEach((pt, idx) => {
+                const px = pt.x * GRID_SIZE + GRID_SIZE / 2;
+                const py = pt.y * GRID_SIZE + GRID_SIZE / 2;
+                const isStart = idx === 0;
+                const isEnd = idx === waypoints.length - 1 && waypoints.length > 1;
+
+                ctx.fillStyle = isStart ? '#2ecc71' : (isEnd ? '#e74c3c' : '#3498db');
+                ctx.beginPath();
+                ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '7px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.fillText(isStart ? 'S' : (isEnd ? 'E' : idx.toString()), px, py + 3);
+            });
+            ctx.restore();
+        }
+
+        function drawFpsCounter() {
+            if (!showFps) return;
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(canvas.width - 55, 5, 50, 16);
+            ctx.strokeStyle = '#7a4b21';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(canvas.width - 55, 5, 50, 16);
+            ctx.fillStyle = '#2ecc71';
+            ctx.font = '7px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${currentFps} FPS`, canvas.width - 30, 16);
+            ctx.restore();
+        }
+
+        function updateFpsCounter() {
+            const now = performance.now();
+            frameCounter++;
+            if (now - lastFpsTime >= 1000) {
+                currentFps = Math.round((frameCounter * 1000) / (now - lastFpsTime));
+                frameCounter = 0;
+                lastFpsTime = now;
+            }
+        }
+
+        function triggerBossBanner() {
+            const banner = document.getElementById('bossBanner');
+            banner.classList.add('show');
+            setTimeout(() => banner.classList.remove('show'), 2500);
+        }
+
+        function deleteTurret(turret) {
+            if (!turret) return;
+            const refund = Math.floor(turret.totalSpent * 0.98);
+            gold += refund;
+            if (turretsPlacedThisWave > 0) turretsPlacedThisWave--;
+
+            createFloatingText(turret.x, turret.y, `+$${refund}`, '#2ecc71');
+            createExplosion(turret.x, turret.y, '#e74c3c', 10);
+
+            turrets = turrets.filter(t => t !== turret);
+            if (selectedPlacedTurret === turret) selectedPlacedTurret = null;
+            if (movingTurret === turret) movingTurret = null;
+
+            updateUI();
+            updateInfoPanel();
+        }
+
+        function generateWaveEnemies(w) {
+            let queue = [];
+            if (currentMapKey === 'bridge') {
+                let count = 4 + w * 2;
+                for (let i = 0; i < count; i++) {
+                    if (i % 4 === 0) queue.push('angler');
+                    else if (i % 3 === 0) queue.push('crossbow');
+                    else if (i % 2 === 0) queue.push('hound');
+                    else queue.push('knight');
+                }
+                if (w % 10 === 0) queue.push('golem');
+            } else if (currentMapKey === 'village') {
+                let count = 6 + w * 2;
+                for (let i = 0; i < count; i++) {
+                    if (i % 4 === 0) queue.push('zombie');
+                    else if (i % 3 === 0) queue.push('wolf');
+                    else if (i % 2 === 0) queue.push('slime');
+                    else queue.push('goblin');
+                }
+                if (w % 10 === 0) queue.push('treant');
+            } else {
+                let count = 5 + w * 2;
+                for (let i = 0; i < count; i++) {
+                    if (i % 4 === 0) queue.push('zombie');
+                    else if (i % 3 === 0) queue.push('crossbow');
+                    else if (i % 2 === 0) queue.push('hound');
+                    else queue.push('goblin');
+                }
+                if (w % 10 === 0) queue.push('larva');
+            }
+            return queue;
+        }
+
+        function startNextWave() {
+            if (waveInProgress || isPaused || isGameOver) return;
+
+            waveInProgress = true;
+            isSpawning = true;
+            turretsPlacedThisWave = 0;
+
+            const diffConfig = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal;
+            currentWaveHpMult = (1 + 0.18 * wave) * diffConfig.hpMult * (currentGameMode === 'infinite' ? Math.pow(1.3, Math.floor(wave / 10)) : 1);
+            currentWaveDmgMult = (1 + 0.15 * wave) * diffConfig.dmgMult;
+
+            spawnQueue = generateWaveEnemies(wave);
+            if (wave % 10 === 0) triggerBossBanner();
+
+            const intervalMs = Math.max(200, 1000 - wave * 40);
+            spawnIntervalFrames = Math.max(8, Math.round((intervalMs / 1000) * 60));
+            spawnTimer = 0;
+
+            updateUI();
+        }
+
+        // TOWER DEFENSE SKIP WAVE MECHANIC
+        function skipWave() {
+            if (isPaused || isGameOver) return;
+
+            if (!waveInProgress) {
+                startNextWave();
+                return;
+            }
+
+            // Early Wave Call Bonus
+            wave++;
+            const bonusGold = Math.floor(20 + wave * 5);
+            gold += bonusGold;
+
+            createFloatingText(canvas.width / 2, 40, `EARLY CALL! +$${bonusGold}`, '#f5b041');
+            createExplosion(canvas.width / 2, 40, '#f5b041', 12);
+            playSynthNote(523.25, 0.2, 'triangle', 0.08);
+
+            const diffConfig = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal;
+            currentWaveHpMult = (1 + 0.18 * wave) * diffConfig.hpMult * (currentGameMode === 'infinite' ? Math.pow(1.3, Math.floor(wave / 10)) : 1);
+            currentWaveDmgMult = (1 + 0.15 * wave) * diffConfig.dmgMult;
+
+            // Queue additional wave enemies immediately
+            const nextEnemies = generateWaveEnemies(wave);
+            spawnQueue.push(...nextEnemies);
+            isSpawning = true;
+
+            if (wave % 10 === 0) triggerBossBanner();
+            updateUI();
+        }
+
+        function initGame() {
+            const diffConfig = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal;
+            gold = diffConfig.initialGold;
+            lives = 20;
+            wave = 1;
+            waveInProgress = false;
+            isSpawning = false;
+            isPaused = false;
+            isGameOver = false;
+            turretsPlacedThisWave = 0;
+            turrets = []; enemies = []; particles = []; projectiles = [];
+            selectedPlacedTurret = null; movingTurret = null;
+
+            document.getElementById('gameplaySidebar').classList.remove('hidden');
+            document.getElementById('builderSidebar').classList.add('hidden');
+
+            startMusic(currentMapKey);
+            updateUI();
+            updateInfoPanel();
+        }
+
+        function enterMapBuilder() {
+            currentGameMode = 'builder';
+            if (!currentCustomMapId || !customMaps.find(m => m.id === currentCustomMapId)) {
+                currentCustomMapId = customMaps[0] ? customMaps[0].id : null;
+            }
+            selectCustomMapForEditing(currentCustomMapId);
+
+            showScreen(null);
+            document.getElementById('gameplaySidebar').classList.add('hidden');
+            document.getElementById('builderSidebar').classList.remove('hidden');
+            startMusic(currentMapKey);
+            updateBuilderInfo();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.overlay-screen').forEach(s => s.classList.add('hidden'));
+            if (screenId) {
+                if (screenId === 'campaignMenu') renderCampaignMenu();
+                if (screenId === 'infiniteMenu') renderInfiniteMenu();
+                document.getElementById(screenId).classList.remove('hidden');
+            }
+        }
+
+        function openDifficultyModal(config) {
+            pendingMatchConfig = config;
+            showScreen('difficultyMenu');
+        }
+
+        function confirmDifficulty(difficultyKey) {
+            currentDifficulty = difficultyKey;
+            if (!pendingMatchConfig) return showScreen('mainMenu');
+
+            if (pendingMatchConfig.mode === 'campaign') {
+                currentGameMode = 'campaign';
+                currentCampaignLevel = pendingMatchConfig.lvl;
+                maxCampaignWaves = pendingMatchConfig.waves;
+                currentMapKey = pendingMatchConfig.mapKey;
+            } else {
+                currentGameMode = 'infinite';
+                currentMapKey = pendingMatchConfig.mapKey;
+            }
+
+            waypoints = getWaypoints(currentMapKey, currentDifficulty);
+            updatePixelPath();
+            initGame();
+            showScreen(null);
+        }
+
+        function cancelDifficultySelect() {
+            if (pendingMatchConfig && pendingMatchConfig.mode === 'campaign') {
+                showScreen('campaignMenu');
+            } else {
+                showScreen('infiniteMenu');
+            }
+        }
+
+        function openSettings(fromScreen) {
+            previousScreen = fromScreen || 'mainMenu';
+            showScreen('settingsMenu');
+        }
+
+        function applyTextureSettings() {
+            if (textureStyle === 'pixel') {
+                canvas.classList.remove('smooth-texture');
+                ctx.imageSmoothingEnabled = false;
+            } else {
+                canvas.classList.add('smooth-texture');
+                ctx.imageSmoothingEnabled = true;
+            }
+        }
+
+        function renderCampaignMenu() {
+            const grid = document.getElementById('campaignGrid');
+            grid.innerHTML = '';
+            const campaignLevels = [
+                { level: 1, name: '1. BRIDGE CHOKE', waves: 10, map: 'bridge' },
+                { level: 2, name: '2. VILLAGE RAID', waves: 10, map: 'village' },
+                { level: 3, name: '3. MOUNTAIN PASS', waves: 10, map: 'mountain' }
+            ];
+
+            let lvlNum = 4;
+            customMaps.forEach(m => {
+                if (m.waypoints && m.waypoints.length >= 2) {
+                    const mapKey = 'custom_' + m.id;
+                    campaignLevels.push({
+                        level: lvlNum,
+                        name: `${lvlNum}. ${m.name.toUpperCase()}`,
+                        waves: 10,
+                        map: mapKey
+                    });
+                    lvlNum++;
+                }
+            });
+
+            campaignLevels.forEach(lvl => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openDifficultyModal({ mode: 'campaign', lvl: lvl.level, mapKey: lvl.map, waves: lvl.waves });
+                const mapObj = MAPS[lvl.map];
+                card.innerHTML = `
+          <div class="card-avatar" style="background: ${mapObj ? mapObj.color : '#e67e22'}; color:#fff;">LVL ${lvl.level}</div>
+          <strong style="font-size:8px; text-align:center;">${lvl.name}</strong>
+          <span style="font-size: 8px; color: var(--accent-gold);">BEST: ${highScores['campaign' + lvl.level] || 0}/${lvl.waves}</span>
+        `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderInfiniteMenu() {
+            const grid = document.getElementById('infiniteGrid');
+            grid.innerHTML = '';
+
+            ['bridge', 'village', 'mountain'].forEach(key => {
+                const m = MAPS[key];
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openDifficultyModal({ mode: 'infinite', mapKey: key });
+                card.innerHTML = `
+          <div class="card-avatar" style="background: ${m.color}; color:#fff; font-size: 12px;">∞</div>
+          <strong style="font-size:8px; text-align:center;">${m.name}</strong>
+          <span style="font-size: 8px; color: var(--accent-gold);">BEST: ${highScores[key] || 0}</span>
+        `;
+                grid.appendChild(card);
+            });
+
+            customMaps.forEach(m => {
+                const key = 'custom_' + m.id;
+                const mapObj = MAPS[key];
+                if (mapObj) {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => openDifficultyModal({ mode: 'infinite', mapKey: key });
+                    card.innerHTML = `
+            <div class="card-avatar" style="background: ${mapObj.color}; color:#fff; font-size: 12px;">✏️</div>
+            <strong style="font-size:8px; text-align:center;">${m.name.toUpperCase()}</strong>
+            <span style="font-size: 8px; color: var(--accent-gold);">BEST: ${highScores[key] || 0}</span>
+          `;
+                    grid.appendChild(card);
+                }
+            });
+        }
+
+        function renderSkinShop() {
+            const grid = document.getElementById('skinGrid');
+            document.getElementById('shopPoints').textContent = playerPoints;
+            grid.innerHTML = '';
+
+            Object.keys(SKINS).forEach(key => {
+                const skin = SKINS[key];
+                const isEquipped = activeSkinKey === key;
+                const card = document.createElement('div');
+                card.className = `card ${isEquipped ? 'active-skin' : ''}`;
+
+                card.innerHTML = `
+          <div class="card-avatar" style="background: ${skin.gradient}"></div>
+          <strong style="font-size:9px;">${skin.name}</strong>
+          <button class="btn-secondary" style="width:100%; font-size: 8px; padding: 6px;">${isEquipped ? 'EQUIPPED' : (skin.unlocked ? 'EQUIP' : skin.cost + ' PT')}</button>
+        `;
+
+                card.querySelector('button').onclick = () => {
+                    if (skin.unlocked) activeSkinKey = key;
+                    else if (playerPoints >= skin.cost) { playerPoints -= skin.cost; skin.unlocked = true; activeSkinKey = key; }
+                    renderSkinShop(); updateShopIcons(); updateUI();
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        function updateShopIcons() {
+            const colors = SKINS[activeSkinKey].colors;
+            document.getElementById('icon-demoman').style.background = colors.demoman;
+            document.getElementById('icon-sniper').style.background = colors.sniper;
+            document.getElementById('icon-scout').style.background = colors.scout;
+            document.getElementById('icon-soldier').style.background = colors.soldier;
+        }
+
+        function updateBuilderInfo() {
+            const panel = document.getElementById('builderInfoPanel');
+            if (builderTool === 'path') {
+                if (waypoints.length === 0) {
+                    panel.textContent = "TOOL: PATH. Click tile to place START point (S).";
+                } else if (waypoints.length === 1) {
+                    panel.textContent = "TOOL: PATH. Click next tile to extend path towards FINISH (E).";
+                } else {
+                    panel.textContent = `TOOL: PATH (${waypoints.length} nodes). Click tile to extend path.`;
+                }
+            } else if (builderTool === 'prop') {
+                panel.textContent = `TOOL: PROP (${selectedPropType.toUpperCase()}). Click non-path tile to place prop.`;
+            } else if (builderTool === 'erase') {
+                panel.textContent = "TOOL: ERASE. Click props or path nodes to remove them.";
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('gold').textContent = gold;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('wave').textContent = wave;
+            document.getElementById('highScore').textContent = highScores[currentMapKey] || 0;
+            document.getElementById('playerLevel').textContent = playerLevel;
+            document.getElementById('playerXp').textContent = playerXp;
+            document.getElementById('nextLevelXp').textContent = nextLevelXp;
+            document.getElementById('xpBarFill').style.width = `${Math.min(100, (playerXp / nextLevelXp) * 100)}%`;
+
+            document.getElementById('modeBadge').textContent = currentGameMode.toUpperCase();
+            document.getElementById('diffBadge').textContent = (DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal).name;
+            document.getElementById('diffBadge').style.background = (DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.normal).badgeColor;
+
+            document.getElementById('placementsCount').textContent = turretsPlacedThisWave;
+            document.getElementById('maxPlacements').textContent = MAX_TURRETS_PER_WAVE;
+
+            document.querySelectorAll('.turret-btn').forEach(btn => {
+                const type = btn.dataset.type;
+                btn.disabled = gold < TURRET_TYPES[type].baseCost;
+            });
+
+            const startBtn = document.getElementById('startWaveBtn');
+            const skipBtn = document.getElementById('skipWaveBtn');
+
+            if (waveInProgress) {
+                startBtn.disabled = true;
+                startBtn.textContent = 'ACTIVE';
+                skipBtn.textContent = 'SKIP (+GOLD)';
+            } else {
+                startBtn.disabled = false;
+                startBtn.textContent = 'START WAVE';
+                skipBtn.textContent = 'SKIP WAVE';
+            }
+        }
+
+        function updateInfoPanel(customMsg) {
+            const panel = document.getElementById('infoPanel');
+            if (customMsg) {
+                panel.innerHTML = `<span style="color:var(--accent-red);">${customMsg}</span>`;
+                return;
+            }
+
+            if (selectedPlacedTurret) {
+                const stats = selectedPlacedTurret.getStats();
+                const typeData = TURRET_TYPES[selectedPlacedTurret.typeKey];
+                const isMax = selectedPlacedTurret.levelIndex >= 3;
+                const upgradeCost = isMax ? 'MAX' : `$${stats.upgradeCost}`;
+                const sellValue = Math.floor(selectedPlacedTurret.totalSpent * 0.7);
+
+                panel.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--text-main);">
+              <span>${typeData.name} LVL ${selectedPlacedTurret.levelIndex + 1}</span>
+              <span style="color:var(--accent-gold);">DMG: ${stats.dmg}</span>
+            </div>
+            <div style="font-size:7px; color:var(--text-muted);">
+              RANGE: ${stats.range} | CD: ${stats.cd}s
+            </div>
+            <div style="display:flex; gap:4px; margin-top:4px;">
+              <button id="btnUpgradeTurret" class="btn-secondary" style="flex:1; font-size:7px; padding:4px; background:var(--accent-green); color:#000;" ${isMax || gold < stats.upgradeCost ? 'disabled' : ''}>
+                UPGRADE (${upgradeCost})
+              </button>
+              <button id="btnMoveTurret" class="btn-secondary" style="flex:1; font-size:7px; padding:4px; background:var(--accent-blue); color:#fff;">
+                MOVE
+              </button>
+              <button id="btnSellTurret" class="btn-secondary" style="flex:1; font-size:7px; padding:4px; background:var(--accent-red); color:#fff;">
+                SELL ($${sellValue})
+              </button>
+            </div>
+          </div>
+        `;
+
+                const upBtn = document.getElementById('btnUpgradeTurret');
+                if (upBtn) upBtn.onclick = () => { selectedPlacedTurret.upgrade(); updateInfoPanel(); };
+                const mvBtn = document.getElementById('btnMoveTurret');
+                if (mvBtn) mvBtn.onclick = () => { movingTurret = selectedPlacedTurret; updateInfoPanel("CLICK TILE TO MOVE TURRET"); };
+                const sellBtn = document.getElementById('btnSellTurret');
+                if (sellBtn) sellBtn.onclick = () => deleteTurret(selectedPlacedTurret);
+            } else {
+                const turretData = TURRET_TYPES[selectedTurretType];
+                panel.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:3px;">
+            <strong style="color:var(--text-main);">${turretData.name.toUpperCase()} ($${turretData.baseCost})</strong>
+            <span>DMG: ${turretData.levels[0].dmg} | RANGE: ${turretData.levels[0].range}</span>
+            <span style="font-size:7px; color:var(--text-muted);">Click map tile to build. (${turretsPlacedThisWave}/${MAX_TURRETS_PER_WAVE} placed this wave)</span>
+          </div>
+        `;
+            }
+        }
+
+        function triggerGameOver(isVictory = false) {
+            isGameOver = true;
+            const menu = document.getElementById('gameOverMenu');
+            const title = document.getElementById('endTitle');
+            const sub = document.getElementById('endSubtitle');
+            const hs = document.getElementById('gameOverHighscoreText');
+
+            if (isVictory) {
+                title.textContent = 'VICTORY!';
+                title.style.color = 'var(--accent-green)';
+                sub.textContent = `You defended the kingdom through Wave ${wave}! Earned +100 Hero PT!`;
+                playerPoints += 100;
+                addXp(150);
+            } else {
+                title.textContent = 'GAME OVER';
+                title.style.color = 'var(--accent-red)';
+                sub.textContent = `Defeated on Wave ${wave}. Upgrade your strategy and try again!`;
+            }
+
+            if (!highScores[currentMapKey] || wave > highScores[currentMapKey]) {
+                highScores[currentMapKey] = wave;
+                if (currentGameMode === 'campaign') {
+                    highScores['campaign' + currentCampaignLevel] = wave;
+                }
+                localStorage.setItem('nd_highscores_v6', JSON.stringify(highScores));
+            }
+
+            hs.textContent = `BEST SCORE: WAVE ${highScores[currentMapKey] || wave}`;
+            menu.classList.remove('hidden');
+        }
+
+        // CANVAS CLICK HANDLER
+        canvas.addEventListener('click', (e) => {
+            initAudio();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const gx = Math.floor((e.clientX - rect.left) * scaleX / GRID_SIZE);
+            const gy = Math.floor((e.clientY - rect.top) * scaleY / GRID_SIZE);
+
+            if (gx < 0 || gx >= 18 || gy < 0 || gy >= 12) return;
+
+            if (currentGameMode === 'builder') {
+                const customMap = MAPS[currentMapKey];
+                if (!customMap) return;
+
+                if (builderTool === 'path') {
+                    waypoints.push({ x: gx, y: gy });
+                    updatePixelPath();
+                    customMap.props = customMap.props.filter(p => !isTileOnPath(p.x, p.y));
+                    saveCurrentCustomMap();
+                    updateBuilderInfo();
+                } else if (builderTool === 'prop') {
+                    if (isTileOnPath(gx, gy)) {
+                        createFloatingText(gx * GRID_SIZE + 10, gy * GRID_SIZE + 10, "CANNOT PLACE ON PATH", "#e74c3c");
+                        return;
+                    }
+                    customMap.props = customMap.props.filter(p => !(p.x === gx && p.y === gy));
+                    customMap.props.push({ x: gx, y: gy, type: selectedPropType });
+                    saveCurrentCustomMap();
+                    createExplosion(gx * GRID_SIZE + 10, gy * GRID_SIZE + 10, "#f5b041", 6);
+                } else if (builderTool === 'erase') {
+                    const propIndex = customMap.props.findIndex(p => p.x === gx && p.y === gy);
+                    if (propIndex !== -1) {
+                        customMap.props.splice(propIndex, 1);
+                        saveCurrentCustomMap();
+                        createExplosion(gx * GRID_SIZE + 10, gy * GRID_SIZE + 10, "#e74c3c", 6);
+                    } else {
+                        const wpIdx = waypoints.findIndex(w => w.x === gx && w.y === gy);
+                        if (wpIdx !== -1) {
+                            waypoints.splice(wpIdx, 1);
+                            updatePixelPath();
+                            saveCurrentCustomMap();
+                            createExplosion(gx * GRID_SIZE + 10, gy * GRID_SIZE + 10, "#e74c3c", 6);
+                            updateBuilderInfo();
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (isPaused || isGameOver) return;
+
+            const restriction = getTileRestrictionReason(gx, gy);
+
+            if (movingTurret) {
+                if (restriction) {
+                    createFloatingText(gx * GRID_SIZE + GRID_SIZE / 2, gy * GRID_SIZE + GRID_SIZE / 2, restriction, '#e74c3c');
+                    return updateInfoPanel(restriction);
+                }
+                if (turrets.find(t => t.gx === gx && t.gy === gy && t !== movingTurret)) {
+                    createFloatingText(gx * GRID_SIZE + GRID_SIZE / 2, gy * GRID_SIZE + GRID_SIZE / 2, "TILE OCCUPIED", '#e74c3c');
+                    return updateInfoPanel("TILE OCCUPIED");
+                }
+                movingTurret.moveTo(gx, gy);
+                selectedPlacedTurret = movingTurret; movingTurret = null;
+                updateUI(); updateInfoPanel(); return;
+            }
+
+            const existing = turrets.find(t => t.gx === gx && t.gy === gy);
+            if (existing) {
+                selectedPlacedTurret = existing;
+                updateInfoPanel();
+                return;
+            }
+
+            if (selectedPlacedTurret) {
+                selectedPlacedTurret = null;
+                updateInfoPanel();
+                return;
+            }
+
+            if (restriction) {
+                createFloatingText(gx * GRID_SIZE + GRID_SIZE / 2, gy * GRID_SIZE + GRID_SIZE / 2, restriction, '#e74c3c');
+                return updateInfoPanel(restriction);
+            }
+
+            if (turretsPlacedThisWave >= MAX_TURRETS_PER_WAVE) return updateInfoPanel(`WAVE LIMIT REACHED (${MAX_TURRETS_PER_WAVE}/${MAX_TURRETS_PER_WAVE})`);
+
+            const turretData = TURRET_TYPES[selectedTurretType];
+            if (gold >= turretData.baseCost) {
+                gold -= turretData.baseCost;
+                turretsPlacedThisWave++;
+                const newTurret = new Turret(gx, gy, selectedTurretType);
+                turrets.push(newTurret);
+                selectedPlacedTurret = newTurret;
+                updateUI(); updateInfoPanel();
+            } else { updateInfoPanel("NEED MORE GOLD"); }
+        });
+
+        // EVENT LISTENERS & UI ACTIONS
+        document.querySelectorAll('.turret-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.turret-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedTurretType = btn.dataset.type;
+                selectedPlacedTurret = null; movingTurret = null;
+                updateInfoPanel();
+            });
+        });
+
+        document.getElementById('startWaveBtn').onclick = () => startNextWave();
+        document.getElementById('skipWaveBtn').onclick = () => skipWave();
+        document.getElementById('autoSkipBtn').onclick = () => {
+            autoSkip = !autoSkip;
+            const btn = document.getElementById('autoSkipBtn');
+            btn.textContent = `AUTO SKIP: ${autoSkip ? 'ON' : 'OFF'}`;
+            btn.style.background = autoSkip ? 'var(--accent-green)' : '#3d2514';
+            btn.style.color = autoSkip ? '#000' : '#fff';
+        };
+
+        document.getElementById('speedBtn').onclick = () => {
+            if (gameSpeed === 1) gameSpeed = 2;
+            else if (gameSpeed === 2) gameSpeed = 3;
+            else gameSpeed = 1;
+            document.getElementById('speedBtn').textContent = `${gameSpeed}x SPEED`;
+        };
+
+        document.getElementById('pauseBtn').onclick = () => {
+            if (currentGameMode === 'builder') return;
+            isPaused = true;
+            showScreen('pauseMenu');
+        };
+
+        document.getElementById('btnCampaignMenu').onclick = () => showScreen('campaignMenu');
+        document.getElementById('btnInfiniteMenu').onclick = () => showScreen('infiniteMenu');
+        document.getElementById('btnBuilderMenu').onclick = () => enterMapBuilder();
+        document.getElementById('btnSkinsMenu').onclick = () => { renderSkinShop(); showScreen('skinMenu'); };
+        document.getElementById('btnSettingsMenu').onclick = () => openSettings('mainMenu');
+
+        document.getElementById('btnToggleMusic').onclick = () => {
+            isMuted = !isMuted;
+            document.getElementById('btnToggleMusic').textContent = `MUSIC: ${isMuted ? 'OFF' : 'ON'}`;
+        };
+
+        document.getElementById('btnToggleFps').onclick = () => {
+            showFps = !showFps;
+            document.getElementById('btnToggleFps').textContent = `SHOW FPS: ${showFps ? 'ON' : 'OFF'}`;
+        };
+
+        document.getElementById('btnToggleTexture').onclick = () => {
+            textureStyle = textureStyle === 'pixel' ? 'smooth' : 'pixel';
+            document.getElementById('btnToggleTexture').textContent = `TEXTURE: ${textureStyle.toUpperCase()}`;
+            applyTextureSettings();
+        };
+
+        document.getElementById('btnCloseSettings').onclick = () => showScreen(previousScreen);
+        document.getElementById('btnPauseSettings').onclick = () => openSettings('pauseMenu');
+        document.getElementById('btnResume').onclick = () => { isPaused = false; showScreen(null); };
+        document.getElementById('btnRestartPause').onclick = () => { showScreen(null); initGame(); };
+        document.getElementById('btnQuitMenu').onclick = () => { isPaused = false; showScreen('mainMenu'); };
+
+        document.getElementById('btnRestartGameOver').onclick = () => { showScreen(null); initGame(); };
+        document.getElementById('btnQuitGameOver').onclick = () => showScreen('mainMenu');
+
+        // BUILDER CONTROLS
+        document.getElementById('customMapSelect').addEventListener('change', (e) => {
+            saveCurrentCustomMap();
+            selectCustomMapForEditing(e.target.value);
+            startMusic(currentMapKey);
+        });
+
+        document.getElementById('customMapNameInput').addEventListener('input', (e) => {
+            const mapObj = customMaps.find(m => m.id === currentCustomMapId);
+            if (mapObj) {
+                mapObj.name = e.target.value.trim() || 'Untitled Map';
+                if (MAPS[currentMapKey]) MAPS[currentMapKey].name = mapObj.name;
+                updateCustomMapSelectDropdown();
+            }
+        });
+
+        document.getElementById('newCustomMapBtn').onclick = () => {
+            saveCurrentCustomMap();
+            const newMap = createDefaultCustomMap();
+            newMap.name = `Custom Map ${customMaps.length + 1}`;
+            customMaps.push(newMap);
+            selectCustomMapForEditing(newMap.id);
+            saveCurrentCustomMap();
+            startMusic(currentMapKey);
+        };
+
+        document.getElementById('deleteCustomMapBtn').onclick = () => {
+            if (customMaps.length <= 1) {
+                const mapObj = customMaps[0];
+                mapObj.name = 'Custom Map 1';
+                mapObj.waypoints = [];
+                mapObj.props = [];
+                mapObj.texture = 'grass';
+                selectCustomMapForEditing(mapObj.id);
+                saveCurrentCustomMap();
+                createFloatingText(canvas.width / 2, canvas.height / 2, "MAP RESET!", "#e74c3c");
+            } else {
+                customMaps = customMaps.filter(m => m.id !== currentCustomMapId);
+                currentCustomMapId = customMaps[0].id;
+                selectCustomMapForEditing(currentCustomMapId);
+                saveCurrentCustomMap();
+                startMusic(currentMapKey);
+            }
+        };
+
+        document.getElementById('toolPathBtn').onclick = () => {
+            builderTool = 'path';
+            document.getElementById('toolPathBtn').classList.add('active');
+            document.getElementById('toolPropBtn').classList.remove('active');
+            document.getElementById('toolEraseBtn').classList.remove('active');
+            updateBuilderInfo();
+        };
+
+        document.getElementById('toolPropBtn').onclick = () => {
+            builderTool = 'prop';
+            document.getElementById('toolPathBtn').classList.remove('active');
+            document.getElementById('toolPropBtn').classList.add('active');
+            document.getElementById('toolEraseBtn').classList.remove('active');
+            updateBuilderInfo();
+        };
+
+        document.getElementById('toolEraseBtn').onclick = () => {
+            builderTool = 'erase';
+            document.getElementById('toolPathBtn').classList.remove('active');
+            document.getElementById('toolPropBtn').classList.remove('active');
+            document.getElementById('toolEraseBtn').classList.add('active');
+            updateBuilderInfo();
+        };
+
+        document.querySelectorAll('.texture-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.texture-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tex = btn.dataset.texture;
+                if (MAPS[currentMapKey]) {
+                    MAPS[currentMapKey].texture = tex;
+                    saveCurrentCustomMap();
+                    startMusic(currentMapKey);
+                }
+            };
+        });
+
+        document.querySelectorAll('.prop-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.prop-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedPropType = btn.dataset.prop;
+                updateBuilderInfo();
+            };
+        });
+
+        document.getElementById('undoWaypointBtn').onclick = () => {
+            if (waypoints.length > 0) {
+                waypoints.pop();
+                updatePixelPath();
+                saveCurrentCustomMap();
+                updateBuilderInfo();
+            }
+        };
+
+        document.getElementById('clearBuilderBtn').onclick = () => {
+            waypoints = [];
+            updatePixelPath();
+            if (MAPS[currentMapKey]) MAPS[currentMapKey].props = [];
+            saveCurrentCustomMap();
+            updateBuilderInfo();
+            createFloatingText(canvas.width / 2, canvas.height / 2, "MAP CLEARED", "#e74c3c");
+        };
+
+        document.getElementById('saveCustomMapBtn').onclick = () => {
+            saveCurrentCustomMap();
+            createFloatingText(canvas.width / 2, canvas.height / 2, "MAP SAVED!", "#2ecc71");
+        };
+
+        document.getElementById('playCustomCampaignBtn').onclick = () => {
+            if (waypoints.length < 2) {
+                document.getElementById('builderInfoPanel').textContent = "ERROR: Map needs at least 2 path waypoints!";
+                return;
+            }
+            saveCurrentCustomMap();
+            openDifficultyModal({ mode: 'campaign', lvl: 1, mapKey: currentMapKey, waves: 10 });
+        };
+
+        document.getElementById('playCustomInfiniteBtn').onclick = () => {
+            if (waypoints.length < 2) {
+                document.getElementById('builderInfoPanel').textContent = "ERROR: Map needs at least 2 path waypoints!";
+                return;
+            }
+            saveCurrentCustomMap();
+            openDifficultyModal({ mode: 'infinite', mapKey: currentMapKey });
+        };
+
+        document.getElementById('exitBuilderBtn').onclick = () => {
+            saveCurrentCustomMap();
+            showScreen('mainMenu');
+        };
+
+        // MAIN GAME LOOP
+        function gameLoop() {
+            updateFpsCounter();
+
+            if (!isPaused && currentGameMode !== 'builder') {
+                for (let s = 0; s < gameSpeed; s++) {
+                    if (isGameOver) break;
+
+                    if (isSpawning && spawnQueue.length > 0) {
+                        spawnTimer++;
+                        if (spawnTimer >= spawnIntervalFrames) {
+                            spawnTimer = 0;
+                            const nextType = spawnQueue.shift();
+                            enemies.push(new Enemy(nextType, currentWaveHpMult, currentWaveDmgMult));
+                            if (spawnQueue.length === 0) isSpawning = false;
+                        }
+                    }
+
+                    turrets.forEach(t => t.update());
+                    projectiles = projectiles.filter(p => p.update());
+
+                    for (let i = enemies.length - 1; i >= 0; i--) {
+                        const e = enemies[i];
+                        if (e.hp <= 0) {
+                            const reward = Math.round((e.isBoss ? 100 : 15) * (DIFFICULTY_SETTINGS[currentDifficulty]?.goldMult || 1));
+                            gold += reward;
+                            addXp(e.isBoss ? 50 : 8);
+                            createFloatingText(e.x, e.y, `+$${reward}`, '#f5b041');
+                            createExplosion(e.x, e.y, '#e74c3c', 8);
+                            enemies.splice(i, 1);
+                            updateUI();
+                        } else if (!e.update()) {
+                            enemies.splice(i, 1);
+                        }
+                    }
+
+                    particles = particles.filter(p => { p.update(); return p.life > 0; });
+
+                    if (lives <= 0 && !isGameOver) triggerGameOver(false);
+
+                    if (waveInProgress && spawnQueue.length === 0 && enemies.length === 0 && !isGameOver) {
+                        waveInProgress = false;
+                        turretsPlacedThisWave = 0;
+                        const waveEndReward = 50 + wave * 10;
+                        gold += waveEndReward;
+                        createFloatingText(canvas.width / 2, canvas.height / 2, `WAVE CLEAR! +$${waveEndReward}`, '#2ecc71');
+
+                        if (currentGameMode === 'campaign' && wave >= maxCampaignWaves) {
+                            triggerGameOver(true);
+                        } else {
+                            wave++;
+                            if (autoSkip) {
+                                setTimeout(() => {
+                                    if (!waveInProgress && !isGameOver && !isPaused) startNextWave();
+                                }, 600);
+                            }
+                        }
+                        updateUI();
+                    }
+                }
+            } else if (currentGameMode === 'builder') {
+                particles = particles.filter(p => { p.update(); return p.life > 0; });
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const map = MAPS[currentMapKey] || MAPS.bridge;
+            map.drawBg();
+            drawPixelPath();
+            drawMapProps();
+
+            if (selectedPlacedTurret || movingTurret || (currentGameMode !== 'builder' && turretsPlacedThisWave < MAX_TURRETS_PER_WAVE)) {
+                drawBuildableGrid();
+            }
+
+            const activeT = selectedPlacedTurret || movingTurret;
+            if (activeT) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(activeT.x, activeT.y, activeT.getRangePx(), 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(245, 176, 65, 0.15)';
+                ctx.fill();
+                ctx.strokeStyle = '#f5b041';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            turrets.forEach(t => t.draw());
+            projectiles.forEach(p => p.draw());
+            enemies.forEach(e => e.draw());
+            particles.forEach(p => p.draw());
+
+            if (currentGameMode === 'builder') drawBuilderOverlay();
+            drawFpsCounter();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        updateShopIcons();
+        updateUI();
+        updateInfoPanel();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>
